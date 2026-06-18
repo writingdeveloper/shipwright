@@ -40,6 +40,15 @@ export const env = createEnv({
     DATABASE_URL: z.string().min(1).default("file:local.db"),
     // Optional auth token for remote libSQL (Turso). Unset for local files.
     DATABASE_AUTH_TOKEN: z.string().optional(),
+    // Resend API key for transactional email (owned by `@repo/email`). OPTIONAL:
+    // when unset, `@repo/email`'s helper no-ops (logs once, returns a skipped
+    // result) instead of throwing, so the app/tests/CI run with no email account.
+    RESEND_API_KEY: z.string().optional(),
+    // The `From` address Resend sends as (e.g. "Acme <noreply@acme.com>").
+    // OPTIONAL and paired with RESEND_API_KEY — if either is missing the send
+    // no-ops. Validated as a non-empty string (Resend accepts a bare address or
+    // a "Name <addr>" form, so we don't over-constrain it to a plain email).
+    EMAIL_FROM: z.string().min(1).optional(),
   },
 
   /**
@@ -56,6 +65,15 @@ export const env = createEnv({
     // sitemap/robots/canonical URLs. Optional so a fresh clone runs with no
     // config; consumers default it to http://localhost:3000.
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+    // PostHog project API key for product analytics (owned by `@repo/analytics`).
+    // OPTIONAL: when unset, `@repo/analytics`'s `PostHogProvider` is a complete
+    // no-op (it never loads posthog-js), so the app/tests/CI run with no
+    // analytics account. Even WHEN set, capture is gated on cookie consent.
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+    // PostHog ingestion host (e.g. https://us.i.posthog.com or a reverse-proxy
+    // path). OPTIONAL; consumers default it to the US cloud. Its origin is added
+    // to the CSP `connect-src` ONLY when a key is also set (see proxy.ts).
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
   },
 
   /**
@@ -68,8 +86,12 @@ export const env = createEnv({
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
 
   /**

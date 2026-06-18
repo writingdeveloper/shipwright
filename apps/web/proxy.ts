@@ -5,6 +5,7 @@ import {
   generateNonce,
   NONCE_HEADER,
 } from "@repo/config/csp";
+import { analyticsConnectSrc } from "@repo/analytics/config";
 
 import { env } from "./env";
 
@@ -42,8 +43,13 @@ export function proxy(request: NextRequest): NextResponse {
   const authOrigin = env.NEXT_PUBLIC_BETTER_AUTH_URL
     ? new URL(env.NEXT_PUBLIC_BETTER_AUTH_URL).origin
     : undefined;
-  const connectSrc =
+  const authConnectSrc =
     authOrigin && authOrigin !== request.nextUrl.origin ? [authOrigin] : [];
+
+  // PostHog's ingestion origin — but ONLY when analytics is configured (a key is
+  // set). With no key this is `[]`, so the production CSP stays strict and is
+  // never broadened for a feature that will never open a connection.
+  const connectSrc = [...authConnectSrc, ...analyticsConnectSrc()];
 
   const csp = buildContentSecurityPolicy({ nonce, isDev, connectSrc });
 

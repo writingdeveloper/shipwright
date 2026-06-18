@@ -29,6 +29,21 @@ overrides:
 #   CI is unaffected and drizzle-kit's esbuild still runs.
 # - sharp: ships per-platform prebuilt binaries (@img/sharp-*), so its optional
 #   native build is unnecessary; Next.js image optimisation uses the prebuilt.
+# - core-js: pulled transitively by posthog-js. Its postinstall only attempts to
+#   print a funding/ads message (wrapped in a try/catch no-op) — it builds
+#   nothing — so skipping it is safe on every OS and keeps installs
+#   non-interactive in CI.
 allowBuilds:
+  core-js: false
   esbuild: false
   sharp: false
+
+# Supply-chain "minimum release age" exclusions. pnpm gates very fresh package
+# versions by default; these analytics/email deps are newer than that window, so
+# they are explicitly allowed here. Pinned by exact version so a future bump is a
+# deliberate, reviewable change.
+minimumReleaseAgeExclude:
+  - "@posthog/core@1.35.1"
+  - "@posthog/types@1.390.0"
+  - posthog-js@1.390.2
+  - resend@6.14.0

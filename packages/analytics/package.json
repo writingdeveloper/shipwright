@@ -1,17 +1,19 @@
 {
-  "name": "@repo/auth",
+  "name": "@repo/analytics",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./provider": "./src/provider.tsx",
+    "./client": "./src/use-analytics.ts",
     "./server": "./src/server.ts",
-    "./client": "./src/client.ts",
-    "./next": "./src/next.ts"
+    "./config": "./src/config.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -19,14 +21,16 @@
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "eslint": "^9.39.1",
-    "react": "^19.2.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.9"
   },
   "dependencies": {
-    "@repo/db": "workspace:*",
-    "@repo/email": "workspace:*",
     "@repo/env": "workspace:*",
-    "better-auth": "^1.6.19"
+    "@repo/legal": "workspace:*",
+    "next": "16.2.9",
+    "posthog-js": "^1.390.2",
+    "posthog-node": "^5.38.0",
+    "react": "^19.2.0"
   },
   "peerDependencies": {
     "react": "^19.2.0"

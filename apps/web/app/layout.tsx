@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import localFont from "next/font/local";
 import { createMetadata, JsonLd, organizationJsonLd } from "@repo/seo";
 import { CookieConsentBanner } from "@repo/legal/cookie-consent";
+import { PostHogProvider } from "@repo/analytics/provider";
 import "./globals.css";
 
 import { seoSite, SITE_NAME, SITE_URL } from "../lib/site";
@@ -46,11 +47,17 @@ export default async function RootLayout({
         <JsonLd
           data={organizationJsonLd({ name: SITE_NAME, url: SITE_URL })}
         />
-        {children}
-        {/* Opt-in cookie consent. Rendered by Next so the nonce CSP covers it;
-            non-blocking by design (bottom strip, click-through wrapper) so it
-            never intercepts the auth/task controls the e2e drives. */}
-        <CookieConsentBanner appName={SITE_NAME} privacyHref="/privacy" />
+        {/* Consent-gated PostHog analytics. With no NEXT_PUBLIC_POSTHOG_KEY this
+            is a transparent pass-through (posthog-js never loads), so tests/CI
+            and a fresh clone are unaffected; with a key it still initialises only
+            after the user accepts cookies (via @repo/legal consent). */}
+        <PostHogProvider>
+          {children}
+          {/* Opt-in cookie consent. Rendered by Next so the nonce CSP covers it;
+              non-blocking by design (bottom strip, click-through wrapper) so it
+              never intercepts the auth/task controls the e2e drives. */}
+          <CookieConsentBanner appName={SITE_NAME} privacyHref="/privacy" />
+        </PostHogProvider>
       </body>
     </html>
   );

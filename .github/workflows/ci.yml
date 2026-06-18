@@ -14,6 +14,16 @@ jobs:
     name: Lint · Types · Build · Test · Audit
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # No real secrets in CI — schema-valid placeholders so @repo/env validation
+    # and the eager clients (libSQL, Better Auth) construct cleanly at build and
+    # test time. NOTE: SKIP_ENV_VALIDATION is deliberately NOT used: it skips Zod
+    # *defaults* too, leaving DATABASE_URL undefined and breaking the libSQL
+    # client during Next's page-data collection. The Playwright webServer
+    # overrides these with its own isolated temp DB + secret.
+    env:
+      BETTER_AUTH_SECRET: ci-placeholder-secret-not-a-real-key-0123456789
+      BETTER_AUTH_URL: http://localhost:3000
+      DATABASE_URL: file:local.db
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,11 +50,6 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          # CI has no real secrets; the env schema is exercised by the runtime
-          # tests below. Skip validation here so the type/build gate doesn't need
-          # production secrets.
-          SKIP_ENV_VALIDATION: "true"
 
       - name: Unit tests (Vitest)
         run: pnpm test
@@ -53,8 +58,6 @@ jobs:
         run: pnpm --filter web exec playwright install --with-deps chromium
 
       - name: E2E tests (Playwright)
-        # The Playwright webServer injects its own temp DB + secret, so no repo
-        # secrets are needed for the real end-to-end run.
         run: pnpm test:e2e
 
       - name: Audit dependencies

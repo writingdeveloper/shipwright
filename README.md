@@ -37,7 +37,7 @@ the current `main`:
 | SEO | metadata / sitemap / robots / JSON-LD | ✅ In repo (`@repo/seo`) |
 | Legal | privacy / ToS / cookie consent | ✅ In repo (`@repo/legal`) |
 | PWA | manifest + service worker + web-push | ✅ In repo (`@repo/pwa`) |
-| API style | Server Actions (tRPC optional) | ✅ Server Actions; tRPC 🔜 optional |
+| API style | Server Actions (+ optional tRPC) | ✅ Server Actions + tRPC (`@repo/api`) |
 
 ✅ = wired into `apps/web` today (the third-party integrations gracefully no-op
 until you add their API key, so the app, tests, and CI run with zero accounts).
@@ -59,6 +59,7 @@ packages/
   observability/       # @repo/observability — Sentry + structured logger
   seo/ legal/          # metadata/sitemap/robots/JSON-LD · privacy/ToS/cookie consent
   pwa/                 # @repo/pwa — manifest + service worker + web-push
+  api/                 # @repo/api — opt-in tRPC layer (TanStack React Query)
   create-shipwright/   # the `npx create-shipwright` scaffolder
   eslint-config/ typescript-config/   # shared tooling
 .claude/               # AI-native layer: skills, agents, settings
@@ -94,7 +95,7 @@ DB, and the Stripe webhook.
 - [x] `turbo gen` scaffolding (`pnpm gen app` / `pnpm gen package`) + AI-native `.claude/` layer
 - [x] CI (lint/types/build/test/e2e/audit), nonce CSP + security headers, rate limiting
 - [x] Optional `@repo/pwa` module (manifest + service worker + web-push)
-- [ ] Optional `@repo/api` (tRPC) — the app currently uses Server Actions
+- [x] Optional `@repo/api` (tRPC) — opt-in, alongside Server Actions
 - [x] `create-shipwright` CLI (`packages/create-shipwright`) — in repo; npm publish wired via Changesets
 - [x] Host-agnostic deploy recipes (Docker / Vercel / Cloudflare) + `DEPLOY.md`
 

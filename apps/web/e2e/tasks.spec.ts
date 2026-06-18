@@ -159,4 +159,11 @@ test("persistence: a task survives a sign-out / sign-in cycle", async ({
   await expect(
     page.getByRole("listitem").filter({ hasText: taskTitle }),
   ).toBeVisible();
+
+  // The opt-in tRPC demo card (@repo/api) reads the same tasks over the tRPC
+  // client and shows a non-zero count — proving the query path end-to-end.
+  await expect(page.getByTestId("trpc-task-card")).toBeVisible();
+  await expect(page.getByTestId("trpc-task-count")).toContainText(
+    "1 task(s) loaded over tRPC",
+  );
 });

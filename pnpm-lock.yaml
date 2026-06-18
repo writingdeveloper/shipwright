@@ -65,6 +65,9 @@ importers:
       '@repo/payments':
         specifier: workspace:*
         version: link:../../packages/payments
+      '@repo/pwa':
+        specifier: workspace:*
+        version: link:../../packages/pwa
       '@repo/security':
         specifier: workspace:*
         version: link:../../packages/security

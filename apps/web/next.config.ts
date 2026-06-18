@@ -37,8 +37,9 @@ const nextConfig: NextConfig = {
     "@repo/analytics",
     "@repo/observability",
     "@repo/security",
+    "@repo/pwa",
   ],
-  serverExternalPackages: ["@libsql/client", "libsql"],
+  serverExternalPackages: ["@libsql/client", "libsql", "web-push"],
 
   // Static, request-independent security headers on every route. The
   // Content-Security-Policy is deliberately NOT here — it carries a per-request

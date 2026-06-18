@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { createMetadata, JsonLd, organizationJsonLd } from "@repo/seo";
 import { CookieConsentBanner } from "@repo/legal/cookie-consent";
 import { PostHogProvider } from "@repo/analytics/provider";
+import { ServiceWorkerProvider } from "@repo/pwa/register";
 import "./globals.css";
 
 import { seoSite, SITE_NAME, SITE_URL } from "../lib/site";
@@ -42,6 +43,8 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="antialiased">
+        {/* Registers the static service worker in production (no-op in dev). */}
+        <ServiceWorkerProvider />
         {/* schema.org Organization structured data (a JSON data block, not an
             executable script, so the strict CSP allows it). */}
         <JsonLd

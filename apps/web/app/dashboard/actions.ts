@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@repo/auth/server";
 import { and, db, eq, sql, task } from "@repo/db";
 
-const MAX_TITLE_LENGTH = 280;
+import { normalizeTitle } from "./validation";
 
 /**
  * Resolve the signed-in user's id for a mutation, or bail out.
@@ -28,12 +28,11 @@ async function requireUserId(): Promise<string> {
 export async function createTask(formData: FormData): Promise<void> {
   const userId = await requireUserId();
 
-  const raw = formData.get("title");
-  const title = typeof raw === "string" ? raw.trim() : "";
-
-  // Validate: non-empty, trimmed, bounded length. Silently ignore empty
-  // submissions (e.g. whitespace-only) instead of persisting junk rows.
-  if (title.length === 0 || title.length > MAX_TITLE_LENGTH) {
+  // Validate via the shared pure helper (non-empty, trimmed, bounded length).
+  // Silently ignore rejected submissions (e.g. whitespace-only) instead of
+  // persisting junk rows.
+  const title = normalizeTitle(formData.get("title"));
+  if (title === null) {
     return;
   }
 

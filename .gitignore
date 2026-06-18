@@ -15,6 +15,13 @@ node_modules
 # Testing
 coverage
 
+# Playwright
+playwright-report
+test-results
+blob-report
+.playwright
+playwright/.cache
+
 # Local libSQL / SQLite database files
 local.db
 local.db-*

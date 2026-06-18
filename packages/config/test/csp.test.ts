@@ -42,6 +42,8 @@ describe("buildContentSecurityPolicy (production)", () => {
   it("includes the core hardening directives", () => {
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("worker-src 'self'");
+    expect(csp).toContain("manifest-src 'self'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("form-action 'self'");
     expect(csp).toContain("frame-ancestors 'none'");

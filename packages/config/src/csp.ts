@@ -68,6 +68,8 @@ export function generateNonce(): string {
  *   Next/optimization and inlined SVGs use.
  * - `font-src 'self'` — only self-hosted fonts (this app ships `next/font/local`).
  * - `object-src 'none'` — no `<object>`/`<embed>`/`<applet>` (legacy plugin XSS).
+ * - `worker-src 'self'` — only the app's own service worker may be registered.
+ * - `manifest-src 'self'` — the web app manifest is same-origin.
  * - `base-uri 'self'` — block `<base>` injection that would rewrite relative URLs.
  * - `form-action 'self'` — forms (incl. Server Actions) may only POST same-origin.
  * - `frame-ancestors 'none'` — modern clickjacking guard (pairs with X-Frame-Options).
@@ -104,6 +106,11 @@ export function buildContentSecurityPolicy(options: CspOptions): string {
     `img-src 'self' blob: data:`,
     `font-src 'self'`,
     `object-src 'none'`,
+    // PWA: allow the app's own service worker and web app manifest under the
+    // strict policy. The SW is registered from same-origin /sw.js; the manifest
+    // is served same-origin at /manifest.webmanifest.
+    `worker-src 'self'`,
+    `manifest-src 'self'`,
     `base-uri 'self'`,
     `form-action 'self'`,
     `frame-ancestors 'none'`,

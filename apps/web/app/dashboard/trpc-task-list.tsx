@@ -17,7 +17,14 @@ import {
  */
 export function TrpcTaskList() {
   const trpc = useTRPC();
-  const taskQuery = useQuery(trpc.task.list.queryOptions());
+  // Refetch on every mount so the card reflects tasks created via Server Actions
+  // (which mutate the DB but don't touch this React Query cache) whenever you
+  // navigate back to the dashboard — the browser-singleton QueryClient otherwise
+  // serves a stale list.
+  const taskQuery = useQuery({
+    ...trpc.task.list.queryOptions(),
+    refetchOnMount: "always",
+  });
 
   return (
     <Card data-testid="trpc-task-card">

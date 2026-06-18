@@ -19,6 +19,7 @@ import { SignOutButton } from "../../components/sign-out-button";
 import { createTask, deleteTask } from "./actions";
 import { PushToggle } from "./push-toggle";
 import { TaskCheckbox } from "./task-checkbox";
+import { TrpcTaskList } from "./trpc-task-list";
 import { UpgradeButton } from "./upgrade-button";
 
 export default async function DashboardPage() {
@@ -129,6 +130,8 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        <TrpcTaskList />
 
         <Card>
           <CardHeader>

@@ -4,6 +4,7 @@ import { Trash2Icon } from "lucide-react";
 import { auth } from "@repo/auth/server";
 import { db, desc, eq, task } from "@repo/db";
 import { isBillingConfigured, isPro } from "@repo/payments";
+import { isPushConfigured } from "@repo/pwa/config";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -16,6 +17,7 @@ import { Input } from "@repo/ui/components/ui/input";
 
 import { SignOutButton } from "../../components/sign-out-button";
 import { createTask, deleteTask } from "./actions";
+import { PushToggle } from "./push-toggle";
 import { TaskCheckbox } from "./task-checkbox";
 import { UpgradeButton } from "./upgrade-button";
 
@@ -99,6 +101,30 @@ export default async function DashboardPage() {
                 className="text-muted-foreground text-sm"
               >
                 Billing not configured.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card data-testid="push-card">
+          <CardHeader>
+            <CardTitle>Notifications</CardTitle>
+            <CardDescription>
+              {isPushConfigured()
+                ? "Enable web push to get notified on this device."
+                : "Push not configured."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isPushConfigured() ? (
+              <PushToggle />
+            ) : (
+              <p
+                data-testid="push-not-configured"
+                className="text-muted-foreground text-sm"
+              >
+                Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable
+                web push.
               </p>
             )}
           </CardContent>

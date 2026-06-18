@@ -21,6 +21,7 @@
     "@repo/env": "workspace:*",
     "@repo/legal": "workspace:*",
     "@repo/observability": "workspace:*",
+    "@repo/payments": "workspace:*",
     "@repo/security": "workspace:*",
     "@repo/seo": "workspace:*",
     "@repo/ui": "workspace:*",

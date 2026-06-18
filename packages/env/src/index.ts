@@ -70,6 +70,20 @@ export const env = createEnv({
     // a fresh clone rate-limit with no keys.
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
     UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+    // Stripe billing (owned by `@repo/payments`). ALL OPTIONAL: with no secret
+    // key the package NEVER constructs a Stripe client — `createCheckoutSession`
+    // returns `{ configured: false }` and the webhook route answers 503 — so the
+    // app, tests, and CI run with no Stripe account and the dashboard hides the
+    // upgrade button instead of redirecting off-site.
+    // Secret API key (`sk_...`); gates whether billing is configured at all.
+    STRIPE_SECRET_KEY: z.string().optional(),
+    // Webhook signing secret (`whsec_...`) used to verify the `Stripe-Signature`
+    // header. Without it the webhook route refuses to trust any payload (503).
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+    // The recurring Price the "Upgrade to Pro" button checks out (`price_...`).
+    // Server-side fallback for the public var below so it can stay a secret if
+    // preferred; either one enables the button.
+    STRIPE_PRICE_ID: z.string().optional(),
   },
 
   /**
@@ -99,6 +113,12 @@ export const env = createEnv({
     // no DSN the browser SDK never initialises and the CSP `connect-src` is not
     // broadened. The browser can only ever see this public var, never SENTRY_DSN.
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+    // Public Stripe Price id (`price_...`) for the "Upgrade to Pro" button
+    // (owned by `@repo/payments`). OPTIONAL: a price id is not a secret, so it
+    // may live here for client-side use; the server reads `STRIPE_PRICE_ID` or
+    // falls back to this. With neither set (and/or no secret key) the upgrade
+    // button is hidden, so the keyless app/tests/CI never start a checkout.
+    NEXT_PUBLIC_STRIPE_PRICE_ID: z.string().optional(),
   },
 
   /**
@@ -120,11 +140,15 @@ export const env = createEnv({
     SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_STRIPE_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
   },
 
   /**

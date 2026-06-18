@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Trash2Icon } from "lucide-react";
 import { auth } from "@repo/auth/server";
 import { db, desc, eq, task } from "@repo/db";
+import { isBillingConfigured, isPro } from "@repo/payments";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -16,6 +17,7 @@ import { Input } from "@repo/ui/components/ui/input";
 import { SignOutButton } from "../../components/sign-out-button";
 import { createTask, deleteTask } from "./actions";
 import { TaskCheckbox } from "./task-checkbox";
+import { UpgradeButton } from "./upgrade-button";
 
 export default async function DashboardPage() {
   // Verify auth in server code (not just middleware) per the repo's rules.
@@ -38,12 +40,30 @@ export default async function DashboardPage() {
 
   const completedCount = tasks.filter((t) => t.completed).length;
 
+  // Billing state (owner-scoped). `pro` is a pure DB read, so it works with no
+  // Stripe keys (everyone is "free"); `billingConfigured` gates whether the
+  // upgrade button can ever start a real checkout. With no keys the button is
+  // hidden and we render a stable "Billing not configured" note instead — so the
+  // keyless e2e sees a deterministic dashboard and is never redirected off-site.
+  const pro = await isPro(session.user.id);
+  const billingConfigured = isBillingConfigured();
+
   return (
     <main className="bg-background flex min-h-svh justify-center p-6">
       <div className="flex w-full max-w-2xl flex-col gap-6 py-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+              {pro ? (
+                <span
+                  data-testid="pro-badge"
+                  className="bg-primary text-primary-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                >
+                  Pro
+                </span>
+              ) : null}
+            </div>
             <p className="text-muted-foreground text-sm">
               Signed in as{" "}
               <span className="text-foreground font-medium">
@@ -53,6 +73,36 @@ export default async function DashboardPage() {
           </div>
           <SignOutButton />
         </header>
+
+        <Card data-testid="billing-card">
+          <CardHeader>
+            <CardTitle>Billing</CardTitle>
+            <CardDescription>
+              {pro
+                ? "You're on the Pro plan. Thanks for your support!"
+                : "Upgrade to Pro to support development."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {pro ? (
+              <p
+                data-testid="billing-pro-note"
+                className="text-muted-foreground text-sm"
+              >
+                Your Pro subscription is active.
+              </p>
+            ) : billingConfigured ? (
+              <UpgradeButton />
+            ) : (
+              <p
+                data-testid="billing-not-configured"
+                className="text-muted-foreground text-sm"
+              >
+                Billing not configured.
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

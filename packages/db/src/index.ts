@@ -6,4 +6,4 @@ export * from "./schema";
  * `@repo/db` (the data-access boundary) rather than reaching into `drizzle-orm`
  * directly. Add to this list as new operators are needed.
  */
-export { and, asc, desc, eq, sql } from "drizzle-orm";
+export { and, asc, desc, eq, inArray, sql } from "drizzle-orm";

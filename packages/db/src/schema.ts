@@ -124,6 +124,37 @@ export const task = sqliteTable(
 );
 
 /**
+ * Web Push subscriptions (owned by `@repo/pwa`).
+ *
+ * One row per browser push subscription, owned by a `user` (FK cascades, so a
+ * deleted user's subscriptions go with them). `endpoint` is unique — re-subscribing
+ * the same browser upserts the same row. The server sends to a user by loading
+ * their rows (owner-scoped) and prunes rows the push service reports as gone
+ * (404/410). The cascade is NOT an authz boundary — reads/writes scope by `userId`.
+ */
+export const pushSubscription = sqliteTable(
+  "push_subscription",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // The push service endpoint URL (unique per browser subscription).
+    endpoint: text("endpoint").notNull().unique(),
+    // ECDH public key + auth secret from the browser's PushSubscription, needed
+    // by web-push to encrypt the payload. Not secrets in the credential sense.
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("pushSubscription_userId_idx").on(table.userId)],
+);
+
+/**
  * Stripe webhook idempotency ledger (owned by `@repo/payments`).
  *
  * Stripe delivers each event AT LEAST once and retries the same `event.id` on
@@ -194,6 +225,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
   tasks: many(task),
+  pushSubscriptions: many(pushSubscription),
   subscription: one(subscription, {
     fields: [user.id],
     references: [subscription.userId],
@@ -213,6 +245,16 @@ export const taskRelations = relations(task, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const pushSubscriptionRelations = relations(
+  pushSubscription,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [pushSubscription.userId],
+      references: [user.id],
+    }),
+  }),
+);
 
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
@@ -235,6 +277,7 @@ export const schema = {
   account,
   verification,
   task,
+  pushSubscription,
   processedStripeEvent,
   subscription,
 };

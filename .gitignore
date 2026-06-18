@@ -15,6 +15,14 @@ node_modules
 # Testing
 coverage
 
+# Local libSQL / SQLite database files
+local.db
+local.db-*
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 # Turbo
 .turbo
 

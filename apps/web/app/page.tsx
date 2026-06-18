@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -16,25 +16,25 @@ export default function Home() {
         <CardHeader>
           <CardTitle>Shipwright</CardTitle>
           <CardDescription>
-            shadcn/ui (new-york) wired up as the shared design system in{" "}
-            <code className="font-mono text-xs">@repo/ui</code>.
+            A per-user Tasks app. Create an account or sign in to reach your
+            dashboard.
           </CardDescription>
-          <CardAction>
-            <Button variant="outline" size="sm">
-              Docs
-            </Button>
-          </CardAction>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
-            This Button and Card are imported from the shared{" "}
-            <code className="font-mono text-xs">@repo/ui</code> package and
-            styled with Tailwind v4 theme tokens.
+            Auth and the database foundation are wired up with Better Auth and
+            Drizzle (libSQL). The protected{" "}
+            <code className="font-mono text-xs">/dashboard</code> proves
+            server-side auth gating.
           </p>
         </CardContent>
         <CardFooter className="gap-2">
-          <Button>Get started</Button>
-          <Button variant="secondary">Learn more</Button>
+          <Button asChild>
+            <Link href="/sign-in">Sign in</Link>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/sign-up">Sign up</Link>
+          </Button>
         </CardFooter>
       </Card>
     </main>

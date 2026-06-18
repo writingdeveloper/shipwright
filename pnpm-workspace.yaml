@@ -1,3 +1,25 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Security overrides. pnpm 10+ reads `overrides` here (not the `pnpm.overrides`
+# field in package.json, which newer pnpm ignores). Kept consistent with the
+# single-comparator advisories already pinned for the repo.
+overrides:
+  "postcss@<8.5.10": ">=8.5.10"
+  "flatted@<3.4.2": ">=3.4.2"
+  "js-yaml@<4.2.0": ">=4.2.0"
+  "brace-expansion@<1.1.13": ">=1.1.13"
+  "minimatch@<3.1.4": ">=3.1.4"
+  "minimatch@>=9.0.0": ">=9.0.7"
+  "picomatch@<2.3.2": ">=2.3.2"
+  "picomatch@>=4.0.0": ">=4.0.4"
+  # drizzle-kit pulls esbuild 0.18 via the deprecated @esbuild-kit loader
+  # (GHSA-67mh-4wv8-2f99, dev-server only). Pin to the patched line.
+  "esbuild@<0.25.0": ">=0.25.0"
+
+# esbuild's postinstall only re-validates an already-installed platform binary
+# (@esbuild/win32-x64). On this setup that check misreports the version and
+# aborts install; the binary itself is correct, so skip the script.
+allowBuilds:
+  esbuild: false

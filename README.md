@@ -36,6 +36,7 @@ the current `main`:
 | Observability | Sentry + structured logger | ✅ In repo (`@repo/observability`) |
 | SEO | metadata / sitemap / robots / JSON-LD | ✅ In repo (`@repo/seo`) |
 | Legal | privacy / ToS / cookie consent | ✅ In repo (`@repo/legal`) |
+| PWA | manifest + service worker + web-push | ✅ In repo (`@repo/pwa`) |
 | API style | Server Actions (tRPC optional) | ✅ Server Actions; tRPC 🔜 optional |
 
 ✅ = wired into `apps/web` today (the third-party integrations gracefully no-op
@@ -57,6 +58,7 @@ packages/
   analytics/           # @repo/analytics — PostHog (consent-gated)
   observability/       # @repo/observability — Sentry + structured logger
   seo/ legal/          # metadata/sitemap/robots/JSON-LD · privacy/ToS/cookie consent
+  pwa/                 # @repo/pwa — manifest + service worker + web-push
   create-shipwright/   # the `npx create-shipwright` scaffolder
   eslint-config/ typescript-config/   # shared tooling
 .claude/               # AI-native layer: skills, agents, settings
@@ -91,7 +93,7 @@ DB, and the Stripe webhook.
 - [x] Extract `@repo/{auth,db,env,config,security,payments,email,analytics,observability,seo,legal}` from it
 - [x] `turbo gen` scaffolding (`pnpm gen app` / `pnpm gen package`) + AI-native `.claude/` layer
 - [x] CI (lint/types/build/test/e2e/audit), nonce CSP + security headers, rate limiting
-- [ ] Optional `@repo/pwa` module (manifest + service worker + web-push)
+- [x] Optional `@repo/pwa` module (manifest + service worker + web-push)
 - [ ] Optional `@repo/api` (tRPC) — the app currently uses Server Actions
 - [x] `create-shipwright` CLI (`packages/create-shipwright`) — in repo; npm publish wired via Changesets
 - [x] Host-agnostic deploy recipes (Docker / Vercel / Cloudflare) + `DEPLOY.md`

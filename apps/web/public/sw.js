@@ -41,6 +41,18 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Dynamic by nature — never cache. API routes and RSC navigation payloads
+  // (Next App Router client-side navigations carry `?_rsc=` / an `RSC` header).
+  // Caching these serves stale data right after a Server Action mutation, so
+  // pass them straight to the network.
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.searchParams.has("_rsc") ||
+    request.headers.get("RSC") === "1"
+  ) {
+    return;
+  }
+
   // Navigations: network-first, fall back to cached shell, then offline page.
   if (request.mode === "navigate") {
     event.respondWith(

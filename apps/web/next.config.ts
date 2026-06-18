@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { securityHeaders } from "@repo/config/headers";
+import { withObservabilityConfig } from "@repo/observability/next-config";
 
 // Importing the app's env module here validates environment variables once, at
 // build/startup, so a missing or malformed var fails fast instead of surfacing
@@ -17,6 +18,8 @@ const nextConfig: NextConfig = {
     "@repo/legal",
     "@repo/email",
     "@repo/analytics",
+    "@repo/observability",
+    "@repo/security",
   ],
   serverExternalPackages: ["@libsql/client", "libsql"],
 
@@ -33,4 +36,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Compose Sentry's build wrapper AROUND the config above WITHOUT losing
+// transpilePackages/headers/etc. With no SENTRY_DSN this returns `nextConfig`
+// unchanged (no Sentry build instrumentation, no source-map upload, no failure);
+// with a DSN it adds the Sentry plugin, uploading source maps only when
+// SENTRY_AUTH_TOKEN + org + project are all present. See @repo/observability.
+export default withObservabilityConfig(nextConfig);

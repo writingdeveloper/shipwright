@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@repo/auth/server";
 import { and, db, eq, sql, task } from "@repo/db";
+import { logger } from "@repo/observability/logger";
 
 import { normalizeTitle } from "./validation";
 
@@ -30,13 +31,23 @@ export async function createTask(formData: FormData): Promise<void> {
 
   // Validate via the shared pure helper (non-empty, trimmed, bounded length).
   // Silently ignore rejected submissions (e.g. whitespace-only) instead of
-  // persisting junk rows.
+  // persisting junk rows — but record it (without the raw value) so a flood of
+  // rejects is visible in the logs/Sentry.
   const title = normalizeTitle(formData.get("title"));
   if (title === null) {
+    logger.warn("createTask: rejected invalid title", { userId });
     return;
   }
 
-  await db.insert(task).values({ userId, title });
+  try {
+    await db.insert(task).values({ userId, title });
+  } catch (error) {
+    // Structured-log the failure (and forward to Sentry when configured) before
+    // rethrowing so Next still renders its error boundary. With no Sentry DSN
+    // this is just a clean server log line — no key required.
+    logger.error("createTask: failed to insert task", { error, userId });
+    throw error;
+  }
 
   revalidatePath("/dashboard");
 }

@@ -1,0 +1,32 @@
+{
+  "name": "@repo/observability",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./logger": "./src/logger.ts",
+    "./config": "./src/config.ts",
+    "./instrumentation": "./src/instrumentation.ts",
+    "./client": "./src/client.ts",
+    "./next-config": "./src/next-config.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "@repo/env": "workspace:*",
+    "@sentry/nextjs": "^10.58.0",
+    "next": "16.2.9"
+  }
+}

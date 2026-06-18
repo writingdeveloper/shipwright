@@ -49,6 +49,27 @@ export const env = createEnv({
     // no-ops. Validated as a non-empty string (Resend accepts a bare address or
     // a "Name <addr>" form, so we don't over-constrain it to a plain email).
     EMAIL_FROM: z.string().min(1).optional(),
+    // Sentry error monitoring (owned by `@repo/observability`). ALL OPTIONAL:
+    // with no DSN the SDK never initialises, `withSentryConfig` leaves the build
+    // untouched, and the CSP is not broadened — so the app/tests/CI run with no
+    // Sentry account. Server-side DSN (the server may use either this or the
+    // public one).
+    SENTRY_DSN: z.string().optional(),
+    // Source-map upload credentials, used by `withSentryConfig` at BUILD time
+    // only. OPTIONAL: without all of token/org/project the build still succeeds,
+    // it just skips uploading source maps (no auth attempt, no failure).
+    SENTRY_AUTH_TOKEN: z.string().optional(),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
+    // Optional traces sample rate (0..1) as a string env; defaults to 0.1.
+    SENTRY_TRACES_SAMPLE_RATE: z.string().optional(),
+    // Upstash Redis REST credentials for the DISTRIBUTED rate-limit backend
+    // (owned by `@repo/security`). OPTIONAL and paired: with BOTH set the limiter
+    // uses Upstash so the window is shared across instances; with either missing
+    // it falls back to the dependency-free in-memory limiter, so dev/CI/tests and
+    // a fresh clone rate-limit with no keys.
+    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   },
 
   /**
@@ -74,6 +95,10 @@ export const env = createEnv({
     // path). OPTIONAL; consumers default it to the US cloud. Its origin is added
     // to the CSP `connect-src` ONLY when a key is also set (see proxy.ts).
     NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
+    // Browser-visible Sentry DSN (owned by `@repo/observability`). OPTIONAL: with
+    // no DSN the browser SDK never initialises and the CSP `connect-src` is not
+    // broadened. The browser can only ever see this public var, never SENTRY_DSN.
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   },
 
   /**
@@ -88,10 +113,18 @@ export const env = createEnv({
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+    SENTRY_ORG: process.env.SENTRY_ORG,
+    SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+    SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE,
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   },
 
   /**

@@ -33,7 +33,15 @@ overrides:
 #   print a funding/ads message (wrapped in a try/catch no-op) — it builds
 #   nothing — so skipping it is safe on every OS and keeps installs
 #   non-interactive in CI.
+# - @sentry/cli: pulled by @sentry/nextjs (@repo/observability). Like esbuild/
+#   sharp it ships its binary as per-platform optionalDependencies
+#   (@sentry/cli-<os>-<arch>, installed regardless); its postinstall only
+#   re-fetches/validates that already-resolved binary. The binary is used ONLY for
+#   source-map UPLOAD, which the build performs only when SENTRY_AUTH_TOKEN + org +
+#   project are all set; with no token (dev/CI/default) nothing invokes it. So
+#   skipping the script is safe on every OS and keeps installs non-interactive.
 allowBuilds:
+  "@sentry/cli": false
   core-js: false
   esbuild: false
   sharp: false

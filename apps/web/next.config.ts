@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
     "@repo/observability",
     "@repo/security",
     "@repo/pwa",
+    "@repo/api",
   ],
   serverExternalPackages: ["@libsql/client", "libsql", "web-push"],
 

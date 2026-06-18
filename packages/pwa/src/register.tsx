@@ -22,7 +22,15 @@ export function ServiceWorkerProvider(): null {
         // best-effort: ignore registration errors
       });
     };
-    window.addEventListener("load", register);
+    // This effect runs AFTER hydration, by which point `window`'s `load` event
+    // may have already fired — in which case a freshly-added "load" listener
+    // never runs and the SW would never register. Register immediately when the
+    // document is already complete; otherwise wait for the load event.
+    if (document.readyState === "complete") {
+      register();
+      return;
+    }
+    window.addEventListener("load", register, { once: true });
     return () => window.removeEventListener("load", register);
   }, []);
 

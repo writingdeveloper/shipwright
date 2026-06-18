@@ -3,11 +3,14 @@
 AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. This file is loaded every session — keep it broadly-applicable; put task-specific expertise in `.claude/skills/`.
 
 ## Repo map
-- `apps/web` — the reference app we dogfood the starter on.
+- `apps/web` — the reference app we dogfood the starter on (Tasks MVP: auth + per-user task CRUD).
 - `packages/ui` (`@repo/ui`) — shared shadcn/ui design system.
+- `packages/auth` (`@repo/auth`) — Better Auth server/client/Next handler.
+- `packages/db` (`@repo/db`) — Drizzle schema + libSQL client.
+- `packages/env` (`@repo/env`) — type-safe env schema (`@t3-oss/env-nextjs` + Zod); apps compose it in a root `env.ts`.
 - `packages/eslint-config`, `packages/typescript-config` — shared tooling configs.
 - `.claude/` — skills, subagents, settings (the AI-native layer).
-- Per-package `CLAUDE.md` files hold area-specific rules; this root file holds repo-wide rules + pointers.
+- A package **may** add its own `CLAUDE.md` for area-specific rules when it has enough of them to warrant one (none do yet); this root file holds repo-wide rules + pointers.
 
 ## Conventions
 - Package manager: **pnpm**. Monorepo: **Turborepo**.

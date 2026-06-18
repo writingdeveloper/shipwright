@@ -1,13 +1,10 @@
 {
-  "name": "@repo/auth",
+  "name": "@repo/env",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./server": "./src/server.ts",
-    "./client": "./src/client.ts",
-    "./next": "./src/next.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",
@@ -17,17 +14,11 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
     "eslint": "^9.39.1",
-    "react": "^19.2.0",
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*",
-    "better-auth": "^1.6.19"
-  },
-  "peerDependencies": {
-    "react": "^19.2.0"
+    "@t3-oss/env-nextjs": "^0.13.8",
+    "zod": "^3.25.76"
   }
 }

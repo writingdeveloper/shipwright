@@ -1,4 +1,5 @@
 import { db, schema } from "@repo/db";
+import { env } from "@repo/env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -9,15 +10,17 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
  * - Email + password enabled; email verification disabled (deterministic for
  *   tests — users can sign in immediately after sign-up).
  *
- * Reads `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` from the environment.
+ * `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` come from the validated `@repo/env`
+ * schema, so they are guaranteed present and well-formed at startup rather than
+ * read raw from `process.env`.
  */
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema,
   }),
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL,
+  secret: env.BETTER_AUTH_SECRET,
+  baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

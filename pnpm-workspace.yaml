@@ -18,8 +18,17 @@ overrides:
   # (GHSA-67mh-4wv8-2f99, dev-server only). Pin to the patched line.
   "esbuild@<0.25.0": ">=0.25.0"
 
-# esbuild's postinstall only re-validates an already-installed platform binary
-# (@esbuild/win32-x64). On this setup that check misreports the version and
-# aborts install; the binary itself is correct, so skip the script.
+# Build scripts we intentionally do NOT run. pnpm would otherwise prompt (or
+# exit non-zero in CI) for each package that ships an install script.
+#
+# - esbuild: its postinstall only re-validates an ALREADY-installed platform
+#   binary (e.g. @esbuild/win32-x64 / @esbuild/linux-x64, a separate dep that is
+#   installed regardless). On Windows that self-check misreports the version and
+#   aborts install; the binary itself is correct. Skipping the script is safe on
+#   every OS — it removes only the redundant check, never the binary — so Linux
+#   CI is unaffected and drizzle-kit's esbuild still runs.
+# - sharp: ships per-platform prebuilt binaries (@img/sharp-*), so its optional
+#   native build is unnecessary; Next.js image optimisation uses the prebuilt.
 allowBuilds:
   esbuild: false
+  sharp: false

@@ -10,34 +10,44 @@
 
 Three things most starters don't do:
 
-1. **AI-native.** First-class Claude Code support ships *in the repo*: a curated root `CLAUDE.md`, per-package `CLAUDE.md` conventions, and a `.claude/` directory (skills, subagents, settings). The repo is built to be driven by an AI coding agent.
+1. **AI-native.** First-class Claude Code support ships *in the repo*: a curated root `CLAUDE.md` (with a convention for per-package `CLAUDE.md` files as packages need them) and a `.claude/` directory (skills, subagents, settings). The repo is built to be driven by an AI coding agent.
 2. **Modular, opt-in.** Pick the features you want at scaffold time (auth, payments, analytics, PWA…) instead of inheriting a fixed all-in-one app. _(Planned via `turbo gen`.)_
 3. **You own it.** Assembled from vetted libraries on the bare official `create-turbo` skeleton — no vendor lock-in, no per-seat fees, no someone-else's-opinions you can't remove.
 
 ## Stack (default presets — all swappable)
 
-| Concern | Default |
-| --- | --- |
-| Framework | Next.js (App Router) + React |
-| Monorepo | Turborepo + pnpm |
-| UI | shadcn/ui + Tailwind |
-| Auth | Better Auth (self-hosted, no per-MAU fee) |
-| DB / ORM | Drizzle |
-| API | tRPC |
-| Payments | Stripe |
-| Email | Resend + React Email |
-| Analytics / errors | PostHog |
-| Observability | Sentry + Better Stack |
+Because packages are **extracted from real usage**, not pre-invented, the table
+below is honest about what ships *today* vs. what's planned. `Status` reflects
+the current `main`:
 
-Nothing here is mandatory — the install-time CLI lets you include only what you need, and every choice is a swappable preset.
+| Concern | Default | Status |
+| --- | --- | --- |
+| Framework | Next.js (App Router) + React | ✅ In repo |
+| Monorepo | Turborepo + pnpm | ✅ In repo |
+| UI | shadcn/ui + Tailwind | ✅ In repo (`@repo/ui`) |
+| Auth | Better Auth (self-hosted, no per-MAU fee) | ✅ In repo (`@repo/auth`) |
+| DB / ORM | Drizzle (libSQL/SQLite) | ✅ In repo (`@repo/db`) |
+| Env validation | `@t3-oss/env-nextjs` + Zod | ✅ In repo (`@repo/env`) |
+| API | tRPC | 🔜 Planned |
+| Payments | Stripe | 🔜 Planned |
+| Email | Resend + React Email | 🔜 Planned |
+| Analytics / errors | PostHog | 🔜 Planned |
+| Observability | Sentry + Better Stack | 🔜 Planned |
+
+✅ = present and dogfooded in `apps/web` today. 🔜 = a planned preset, not yet in
+the repo. Nothing here is mandatory — the install-time CLI (also planned) will
+let you include only what you need, and every choice is a swappable preset.
 
 ## Structure
 
 ```text
 apps/
-  web/                 # reference app (the dogfood target)
+  web/                 # reference app (the dogfood target): Tasks MVP
 packages/
   ui/                  # @repo/ui — shared shadcn/ui design system
+  auth/                # @repo/auth — Better Auth (server + client + Next handler)
+  db/                  # @repo/db — Drizzle schema + libSQL client
+  env/                 # @repo/env — type-safe env schema (t3-env + Zod)
   eslint-config/       # @repo/eslint-config
   typescript-config/   # @repo/typescript-config
 .claude/               # AI-native layer: skills, agents, settings
@@ -55,8 +65,9 @@ pnpm dev
 
 ## Roadmap
 
-- [ ] First reference app (`apps/web`) with auth + db
-- [ ] Extract `@repo/{auth,db,api}` from it
+- [x] First reference app (`apps/web`) with auth + db (Tasks MVP: sign-up/in, per-user task CRUD, protected dashboard)
+- [x] Extract `@repo/{auth,db,env}` from it
+- [ ] Extract `@repo/api` (tRPC) from the reference app
 - [ ] `@repo/seo`, `@repo/legal` (jurisdiction-agnostic: GDPR / CCPA / PIPA presets)
 - [ ] Optional `@repo/pwa` module (manifest + service worker + web-push)
 - [ ] `turbo gen` install-time feature picker

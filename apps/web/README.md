@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# web — shipwright reference app
 
-## Getting Started
+The dogfood target for [shipwright](../../README.md): a small but complete
+**Tasks** MVP that exercises the extracted `@repo/*` packages end to end.
 
-First, run the development server:
+- **Auth** — email + password sign-up / sign-in via `@repo/auth` (Better Auth).
+- **Tasks** — per-user task CRUD (add / toggle / delete) on a protected
+  `/dashboard`, persisted with `@repo/db` (Drizzle + libSQL).
+- **Security posture** — auth is verified *inside* every Server Action and the
+  data layer scopes every read/write by `userId` (defence in depth), not just
+  middleware. `@repo/db`'s Vitest suite proves the ownership invariants.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+It is a reference, not a product: features are kept minimal so the patterns
+(extract-from-usage, server-side authz, validated env) stay legible.
+
+## Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing |
+| `/sign-up`, `/sign-in` | Better Auth email/password forms |
+| `/dashboard` | Protected task list (redirects to `/sign-in` when signed out) |
+| `/api/auth/[...all]` | Better Auth route handlers (from `@repo/auth/next`) |
+
+## Getting started
+
+Run everything from the repo root with pnpm (Turborepo wires the workspace).
+
+1. **Environment.** Copy the example and fill it in. Values are validated by
+   `@repo/env` at build/startup, so a missing or malformed required var fails
+   fast with a clear error.
+
+   ```sh
+   cp apps/web/.env.example apps/web/.env
+   # BETTER_AUTH_SECRET must be >= 32 chars — generate one:
+   #   openssl rand -base64 32
+   ```
+
+2. **Create the database.** Applies the Drizzle schema to the local libSQL file
+   (`DATABASE_URL`, default `file:local.db`).
+
+   ```sh
+   pnpm --filter @repo/db db:push
+   ```
+
+3. **Develop.** Starts Next.js on http://localhost:3000.
+
+   ```sh
+   pnpm dev --filter=web
+   ```
+
+## Testing
+
+- **Unit (Vitest).** Pure, framework-free logic (e.g. title validation):
+
+  ```sh
+  pnpm test --filter=web
+  ```
+
+- **End-to-end (Playwright).** Builds a real production server on port 3100
+  against a throwaway temp database and drives the full sign-up → add → toggle →
+  delete → sign-out → sign-in flow. It manages its own DB and secrets (see
+  `playwright.config.ts`), so no `.env` is required for e2e.
+
+  ```sh
+  pnpm test:e2e          # from repo root
+  # first run only, to fetch the browser:
+  pnpm -C apps/web exec playwright install --with-deps chromium
+  ```
+
+## Build
+
+```sh
+pnpm build --filter=web
+# Secret-less build (type-check / CI) — skips env validation:
+SKIP_ENV_VALIDATION=true pnpm build --filter=web
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -48,6 +48,35 @@ Run these from the repo root (Turborepo fans them out across the workspace):
 For a secret-less build (e.g. quick type-check) use
 `SKIP_ENV_VALIDATION=true pnpm build`.
 
+## Scaffolding
+
+New packages and apps are generated from templates (Turborepo `turbo gen` +
+Plop) so they're wired to the shared `@repo/*` config from the first commit — a
+freshly generated workspace passes `pnpm install && pnpm check-types && pnpm lint
+&& pnpm build` with **zero manual edits**. Run from the repo root:
+
+| Command | What it scaffolds |
+| --- | --- |
+| `pnpm gen package` | `packages/<name>` — a `@repo/<name>` TypeScript library (shared tsconfig/eslint, `exports` → `src/index.ts`), like `@repo/env` |
+| `pnpm gen app` | `apps/<name>` — a minimal Next.js 16 App-Router app wired to `@repo/ui` (default dev port **3200**; web is 3000, e2e 3100) |
+| `pnpm gen react-component` | `packages/ui/src/components/ui/<name>.tsx` — a typed `@repo/ui` component stub (also runnable via `pnpm --filter @repo/ui generate:component`) |
+
+Names must be **kebab-case** (`payments`, `rate-limit`); the generator derives
+`@repo/<name>`, the export identifier, and the component name from it.
+
+After generating, run `pnpm install` so pnpm links the new workspace.
+
+### Non-interactive (scriptable) runs
+
+Bypass the prompts by passing the answers to `--args` in prompt order (for
+`app`, the second arg is the dev port):
+
+```sh
+pnpm gen package --args my-pkg
+pnpm gen app --args my-app 3200
+pnpm gen react-component --args my-widget
+```
+
 ## Conventions
 
 - **TypeScript everywhere, strict.** No `any` escape hatches without a reason.

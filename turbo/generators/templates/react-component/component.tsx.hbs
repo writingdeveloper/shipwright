@@ -1,0 +1,15 @@
+import * as React from "react";
+
+import { cn } from "@repo/ui/lib/utils";
+
+function {{ pascalCase name }}({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="{{ dashCase name }}"
+      className={cn(className)}
+      {...props}
+    />
+  );
+}
+
+export { {{ pascalCase name }} };

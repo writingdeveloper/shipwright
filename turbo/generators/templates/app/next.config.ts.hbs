@@ -1,0 +1,10 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // Transpile the shared design system so its TS/JSX source is compiled by this
+  // app's Next pipeline (it ships source, not a build). Add other `@repo/*`
+  // packages here as this app starts consuming them.
+  transpilePackages: ["@repo/ui"],
+};
+
+export default nextConfig;

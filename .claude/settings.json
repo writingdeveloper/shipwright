@@ -1,6 +1,10 @@
 {
   "permissions": {
-    "allow": [],
-    "deny": []
+    "deny": [
+      "Read(./**/.env)",
+      "Read(./**/.env.local)",
+      "Read(./**/*.db)",
+      "Read(./**/*.db-journal)"
+    ]
   }
 }

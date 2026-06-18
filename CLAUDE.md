@@ -10,7 +10,7 @@ AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. T
 - `packages/env` (`@repo/env`) — type-safe env schema (`@t3-oss/env-nextjs` + Zod); apps compose it in a root `env.ts`.
 - `packages/eslint-config`, `packages/typescript-config` — shared tooling configs.
 - `.claude/` — skills, subagents, settings (the AI-native layer).
-- A package **may** add its own `CLAUDE.md` for area-specific rules when it has enough of them to warrant one (none do yet); this root file holds repo-wide rules + pointers.
+- Several packages ship their own `CLAUDE.md` for area-specific rules (`@repo/auth`, `@repo/db`, `@repo/ui`, `@repo/env`); this root file holds repo-wide rules + pointers. Add one to a package when it accrues enough local rules to warrant it.
 
 ## Conventions
 - Package manager: **pnpm**. Monorepo: **Turborepo**.

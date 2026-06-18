@@ -1,0 +1,41 @@
+{
+  "name": "@repo/pwa",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./register": "./src/register.tsx",
+    "./install": "./src/install.tsx",
+    "./push/client": "./src/push/client.ts",
+    "./push/server": "./src/push/server.ts",
+    "./manifest": "./src/manifest.ts",
+    "./config": "./src/config.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.2.2",
+    "@types/web-push": "^3.6.4",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "@repo/db": "workspace:*",
+    "@repo/env": "workspace:*",
+    "@repo/observability": "workspace:*",
+    "next": "16.2.9",
+    "react": "^19.2.0",
+    "web-push": "^3.6.7"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0"
+  }
+}

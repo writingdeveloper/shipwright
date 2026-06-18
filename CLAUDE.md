@@ -8,6 +8,7 @@ AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. T
 - `packages/auth` (`@repo/auth`) — Better Auth server/client/Next handler.
 - `packages/db` (`@repo/db`) — Drizzle schema + libSQL client.
 - `packages/env` (`@repo/env`) — type-safe env schema (`@t3-oss/env-nextjs` + Zod); apps compose it in a root `env.ts`.
+- `packages/config` (`@repo/config`) — shared security headers + nonce-based CSP helpers; wired into `apps/web` via `next.config.ts` `headers()` + `proxy.ts`.
 - `packages/eslint-config`, `packages/typescript-config` — shared tooling configs.
 - `.claude/` — skills, subagents, settings (the AI-native layer).
 - Several packages ship their own `CLAUDE.md` for area-specific rules (`@repo/auth`, `@repo/db`, `@repo/ui`, `@repo/env`); this root file holds repo-wide rules + pointers. Add one to a package when it accrues enough local rules to warrant it.
@@ -20,7 +21,7 @@ AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. T
 
 ## Architecture rules (don't violate)
 - **Auth/authz: verify inside each Server Action** — do NOT rely on middleware / layout / page checks alone. Move DB access to a `server-only` Data Access Layer.
-- **CSP is opt-in** — add it via nonce-based middleware (a `@repo/config` concern); it is not a framework default.
+- **CSP is nonce-based, in the proxy** — `apps/web/proxy.ts` mints a per-request nonce and emits a strict CSP (`@repo/config/csp`); static security headers come from `next.config.ts` `headers()` (`@repo/config/headers`). Nonce ⇒ pages render dynamically. Don't add `'unsafe-inline'`/`'unsafe-eval'` to prod scripts. (Next 16 renamed `middleware.ts` → `proxy.ts`.)
 - **Env**: validation schemas live in the package that owns the vars; each app composes them in a root `env.ts` (zod + `@t3-oss/env-nextjs`).
 - **Payment webhooks**: verify the signature, dedupe by event id (idempotency), return 2xx fast then process async, never depend on event ordering.
 - **Compliance is jurisdiction-agnostic**: a future `@repo/legal` ships GDPR / CCPA / PIPA presets — never hardcode one country.

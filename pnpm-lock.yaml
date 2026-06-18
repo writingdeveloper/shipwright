@@ -37,6 +37,9 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@repo/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -126,6 +129,27 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+
+  packages/config:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.3
+      eslint:
+        specifier: ^9.39.1
+        version: 9.39.1(jiti@2.7.0)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@22.15.3)(vite@8.0.16(@types/node@22.15.3)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4))
 
   packages/db:
     dependencies:

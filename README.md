@@ -26,7 +26,7 @@ the current `main`:
 | Monorepo | Turborepo + pnpm | ✅ In repo |
 | UI | shadcn/ui + Tailwind | ✅ In repo (`@repo/ui`) |
 | Auth | Better Auth (self-hosted, no per-MAU fee) | ✅ In repo (`@repo/auth`) |
-| DB / ORM | Drizzle (libSQL/SQLite) | ✅ In repo (`@repo/db`) |
+| DB / ORM | Drizzle (libSQL/SQLite — local file or Turso) | ✅ In repo (`@repo/db`); Postgres = documented swap |
 | Env validation | `@t3-oss/env-nextjs` + Zod | ✅ In repo (`@repo/env`) |
 | API | tRPC | 🔜 Planned |
 | Payments | Stripe | 🔜 Planned |
@@ -46,8 +46,9 @@ apps/
 packages/
   ui/                  # @repo/ui — shared shadcn/ui design system
   auth/                # @repo/auth — Better Auth (server + client + Next handler)
-  db/                  # @repo/db — Drizzle schema + libSQL client
+  db/                  # @repo/db — Drizzle schema + libSQL client (local file or Turso)
   env/                 # @repo/env — type-safe env schema (t3-env + Zod)
+  config/              # @repo/config — security headers + nonce-based CSP helpers
   eslint-config/       # @repo/eslint-config
   typescript-config/   # @repo/typescript-config
 .claude/               # AI-native layer: skills, agents, settings

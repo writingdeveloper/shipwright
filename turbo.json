@@ -3,6 +3,7 @@
   "ui": "tui",
   "globalEnv": [
     "CI",
+    "NODE_ENV",
     "DATABASE_URL",
     "DATABASE_AUTH_TOKEN",
     "BETTER_AUTH_SECRET",

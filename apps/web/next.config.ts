@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import type { NextConfig } from "next";
 import { securityHeaders } from "@repo/config/headers";
 import { withObservabilityConfig } from "@repo/observability/next-config";
@@ -8,6 +10,21 @@ import { withObservabilityConfig } from "@repo/observability/next-config";
 import "./env";
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for container/VPS hosts (Docker → Coolify, Fly,
+  // any Node runtime). `next build` emits `.next/standalone` with a minimal
+  // `server.js` + only the traced `node_modules`, so the runtime image needs no
+  // `pnpm install`. Harmless on Vercel (ignored) and for `next dev`/`next start`,
+  // so it stays on unconditionally. See DEPLOY.md.
+  output: "standalone",
+  // In a monorepo the file-tracer must walk UP to the workspace root to collect
+  // the linked `@repo/*` packages and hoisted `node_modules`; without this Next
+  // infers the app dir and ships an incomplete standalone bundle. Next always
+  // runs the build with cwd = this app dir (turbo, the Playwright webServer, and
+  // the Dockerfile all do), so the repo root is two levels up. `process.cwd()`
+  // is used instead of `import.meta.url` because Next compiles this config to
+  // CommonJS (`next.config.compiled.js`), where `import.meta` is unavailable.
+  outputFileTracingRoot: path.join(process.cwd(), "..", ".."),
+
   transpilePackages: [
     "@repo/ui",
     "@repo/auth",

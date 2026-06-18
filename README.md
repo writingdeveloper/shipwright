@@ -64,6 +64,19 @@ pnpm install
 pnpm dev
 ```
 
+Or scaffold a fresh project from this starter with the CLI:
+
+```sh
+npx create-shipwright my-app
+```
+
+## Deploying
+
+See **[DEPLOY.md](./DEPLOY.md)** for host-agnostic recipes — Docker (Coolify /
+VPS / any container host, via Next.js standalone output), Vercel, and Cloudflare
+(OpenNext) — plus the env vars each needs, applying the schema to a prod Turso
+DB, and the Stripe webhook.
+
 ## Roadmap
 
 - [x] First reference app (`apps/web`) with auth + db (Tasks MVP: sign-up/in, per-user task CRUD, protected dashboard)
@@ -72,7 +85,8 @@ pnpm dev
 - [ ] `@repo/seo`, `@repo/legal` (jurisdiction-agnostic: GDPR / CCPA / PIPA presets)
 - [ ] Optional `@repo/pwa` module (manifest + service worker + web-push)
 - [ ] `turbo gen` install-time feature picker
-- [ ] `create-shipwright` CLI on npm
+- [x] `create-shipwright` CLI (`packages/create-shipwright`) — in repo; npm publish wired via Changesets
+- [x] Host-agnostic deploy recipes (Docker / Vercel / Cloudflare) + `DEPLOY.md`
 
 ## License
 

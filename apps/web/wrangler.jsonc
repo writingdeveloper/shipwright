@@ -1,0 +1,34 @@
+// Cloudflare Workers config — STUB. shipwright does NOT ship a wired Cloudflare
+// build; this file plus the notes in DEPLOY.md ("Cloudflare") document the path
+// so you can opt in. The supported route is the OpenNext adapter
+// (@opennextjs/cloudflare), which compiles Next.js to a Worker. The Docker and
+// Vercel targets are the first-class, tested ones.
+//
+// To actually deploy here you would, in apps/web:
+//   1. pnpm add -D @opennextjs/cloudflare wrangler
+//   2. add an open-next.config.ts (see https://opennext.js.org/cloudflare)
+//   3. set `compatibility_date` + the `nodejs_compat` flag (below)
+//   4. build:  pnpm exec opennextjs-cloudflare build
+//   5. deploy: pnpm exec opennextjs-cloudflare deploy   (wraps `wrangler deploy`)
+//
+// Caveats (why this is documented, not wired):
+//   - The libSQL driver in @repo/db uses Node APIs; on Workers you must use a
+//     remote Turso URL over HTTP and the `nodejs_compat` flag, or swap @repo/db
+//     for an HTTP/Workers-native driver. A local `file:` DB cannot work on the
+//     edge.
+//   - Set every runtime secret with `wrangler secret put <NAME>` (see the env
+//     table in DEPLOY.md); do NOT commit secrets to `vars`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shipwright-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -17,6 +17,15 @@ overrides:
   # drizzle-kit pulls esbuild 0.18 via the deprecated @esbuild-kit loader
   # (GHSA-67mh-4wv8-2f99, dev-server only). Pin to the patched line.
   "esbuild@<0.25.0": ">=0.25.0"
+  # Compatibility override (not an advisory): changesets' transitive
+  # @manypkg/get-packages pulls read-yaml-file@1.1.0, which calls js-yaml's
+  # `safeLoad` — removed in js-yaml 4. The `js-yaml@<4.2.0 -> >=4.2.0` security
+  # pin above therefore breaks `changeset` (init/version/status) at workspace
+  # discovery. Pinned to EXACTLY 2.1.0 (not >=): it keeps the CJS API that
+  # @manypkg requires (callable default export + `.sync`) while using js-yaml 4's
+  # `load`. The newer 3.0.0 is ESM-only (named exports, no `.sync`) and would
+  # break @manypkg's `require(...)`/`__default`/`.sync` calls.
+  "read-yaml-file@1": "2.1.0"
 
 # Build scripts we intentionally do NOT run. pnpm would otherwise prompt (or
 # exit non-zero in CI) for each package that ships an install script.

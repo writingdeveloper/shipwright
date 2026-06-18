@@ -1,0 +1,56 @@
+{
+  "name": "create-shipwright",
+  "version": "0.1.0",
+  "description": "Scaffold a new project from the shipwright Next.js + Turborepo starter.",
+  "license": "MIT",
+  "author": "Si Hyeong Lee (@writingdeveloper)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/writingdeveloper/shipwright.git",
+    "directory": "packages/create-shipwright"
+  },
+  "homepage": "https://github.com/writingdeveloper/shipwright#readme",
+  "bugs": {
+    "url": "https://github.com/writingdeveloper/shipwright/issues"
+  },
+  "keywords": [
+    "shipwright",
+    "create",
+    "starter",
+    "boilerplate",
+    "turborepo",
+    "nextjs"
+  ],
+  "type": "module",
+  "bin": {
+    "create-shipwright": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "dev": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "giget": "^3.3.0",
+    "picocolors": "^1.1.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "@types/prompts": "^2.4.9",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}

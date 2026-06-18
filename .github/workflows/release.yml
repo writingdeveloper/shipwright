@@ -1,0 +1,94 @@
+name: Release
+
+# Publishes the public CLI(s) (today: create-shipwright) via Changesets.
+#
+# Flow: when changeset files land on `main`, changesets/action opens/updates a
+# "Version Packages" PR that bumps versions + writes changelogs. Merging that PR
+# runs this again and `changeset publish` pushes the new version(s) to npm.
+#
+# GATED ON `NPM_TOKEN`: publishing needs that repo secret. Without it the whole
+# job is SKIPPED (not failed), so a fork or a not-yet-configured repo never sees
+# a red Release run. Set the secret (Settings → Secrets → Actions → NPM_TOKEN)
+# to enable publishing; nothing else is required.
+
+on:
+  push:
+    branches: [main]
+
+# changesets/action needs to push the version PR and create a GitHub release.
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # GitHub Actions forbids `secrets.*` in a job-level `if:`, so a tiny gate job
+  # reads the secret into an output and the real job keys off that output.
+  guard:
+    name: Check release is configured
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "NPM_TOKEN not set — skipping publish. Set the secret to enable releases." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  release:
+    name: Version / Publish
+    needs: guard
+    if: needs.guard.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Schema-valid placeholders so @repo/env validation and the eager clients
+    # construct cleanly during the build that precedes publish (same approach as
+    # ci.yml). No real secrets are needed to publish the CLI.
+    env:
+      BETTER_AUTH_SECRET: ci-placeholder-secret-not-a-real-key-0123456789
+      BETTER_AUTH_URL: http://localhost:3000
+      DATABASE_URL: file:local.db
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # changesets needs full history to diff against the base branch.
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Release PR or publish
+        uses: changesets/action@v1
+        with:
+          # `release` builds the CLI then runs `changeset publish`.
+          publish: pnpm release
+          version: pnpm version
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

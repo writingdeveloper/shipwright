@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import localFont from "next/font/local";
+import { createMetadata, JsonLd, organizationJsonLd } from "@repo/seo";
+import { CookieConsentBanner } from "@repo/legal/cookie-consent";
 import "./globals.css";
+
+import { seoSite, SITE_NAME, SITE_URL } from "../lib/site";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -12,10 +16,10 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
 });
 
-export const metadata: Metadata = {
-  title: "Shipwright",
-  description: "AI-native Next.js + Turborepo starter for shipping MVPs fast.",
-};
+// Root metadata via @repo/seo: sets metadataBase (so canonical/OG/sitemap URLs
+// resolve absolutely), a "%s · Shipwright" title template that per-page titles
+// inherit, and the OpenGraph/Twitter defaults.
+export const metadata: Metadata = createMetadata(seoSite);
 
 export default async function RootLayout({
   children,
@@ -36,7 +40,18 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {/* schema.org Organization structured data (a JSON data block, not an
+            executable script, so the strict CSP allows it). */}
+        <JsonLd
+          data={organizationJsonLd({ name: SITE_NAME, url: SITE_URL })}
+        />
+        {children}
+        {/* Opt-in cookie consent. Rendered by Next so the nonce CSP covers it;
+            non-blocking by design (bottom strip, click-through wrapper) so it
+            never intercepts the auth/task controls the e2e drives. */}
+        <CookieConsentBanner appName={SITE_NAME} privacyHref="/privacy" />
+      </body>
     </html>
   );
 }

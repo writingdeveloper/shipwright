@@ -11,7 +11,7 @@ import {
 
 export default function Home() {
   return (
-    <main className="bg-background flex min-h-svh items-center justify-center p-6">
+    <main className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Shipwright</CardTitle>
@@ -37,6 +37,16 @@ export default function Home() {
           </Button>
         </CardFooter>
       </Card>
+
+      <footer className="text-muted-foreground flex items-center gap-4 text-sm">
+        <Link href="/privacy" className="hover:text-foreground hover:underline">
+          Privacy
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link href="/terms" className="hover:text-foreground hover:underline">
+          Terms
+        </Link>
+      </footer>
     </main>
   );
 }

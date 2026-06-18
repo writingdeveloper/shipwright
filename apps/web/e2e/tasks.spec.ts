@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 /**
  * Canonical end-to-end user journey against the REAL app (production build,
@@ -15,6 +15,21 @@ function uniqueEmail(): string {
   return `user+${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 }
 
+/**
+ * Dismiss the opt-in cookie-consent banner once per browser context.
+ *
+ * The banner is non-blocking (a click-through bottom strip), but accepting it
+ * up front sets the consent cookie so it never renders again for the rest of
+ * the journey, keeping the click targets unambiguous regardless of viewport.
+ */
+async function acceptCookies(page: Page): Promise<void> {
+  const accept = page.getByTestId("cookie-consent-accept");
+  if (await accept.isVisible().catch(() => false)) {
+    await accept.click();
+    await expect(page.getByTestId("cookie-consent")).toHaveCount(0);
+  }
+}
+
 test.describe.configure({ mode: "serial" });
 
 test("sign up → add → toggle → delete → sign out → sign back in", async ({
@@ -25,6 +40,7 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
 
   // 1. Register and land authenticated on the dashboard.
   await page.goto("/sign-up");
+  await acceptCookies(page);
   await page.getByLabel("Name").fill("Test User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
@@ -115,6 +131,7 @@ test("persistence: a task survives a sign-out / sign-in cycle", async ({
 
   // Register.
   await page.goto("/sign-up");
+  await acceptCookies(page);
   await page.getByLabel("Name").fill("Persist User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);

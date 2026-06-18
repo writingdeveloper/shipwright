@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     "@repo/db",
     "@repo/env",
     "@repo/config",
+    "@repo/seo",
+    "@repo/legal",
   ],
   serverExternalPackages: ["@libsql/client", "libsql"],
 

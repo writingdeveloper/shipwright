@@ -9,6 +9,7 @@
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",
     "NEXT_PUBLIC_BETTER_AUTH_URL",
+    "NEXT_PUBLIC_APP_URL",
     "SKIP_ENV_VALIDATION"
   ],
   "tasks": {

@@ -51,6 +51,11 @@ export const env = createEnv({
     // client falls back to same-origin, which is correct for the default
     // single-app deployment.
     NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url().optional(),
+    // Optional canonical public origin of the app (e.g. https://example.com),
+    // used by `@repo/seo` as the SEO `metadataBase` and to build absolute
+    // sitemap/robots/canonical URLs. Optional so a fresh clone runs with no
+    // config; consumers default it to http://localhost:3000.
+    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   },
 
   /**
@@ -64,6 +69,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
 
   /**

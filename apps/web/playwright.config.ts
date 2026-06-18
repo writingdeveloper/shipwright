@@ -51,6 +51,9 @@ const serverEnv = {
     "e2e-test-secret-please-change-in-real-deployments-0123456789",
   BETTER_AUTH_URL: BASE_URL,
   NEXT_PUBLIC_BETTER_AUTH_URL: BASE_URL,
+  // Drive @repo/seo's metadataBase / sitemap / robots absolute URLs off the
+  // test server's origin so the SEO e2e assertions check real, matching output.
+  NEXT_PUBLIC_APP_URL: BASE_URL,
 };
 
 export default defineConfig({

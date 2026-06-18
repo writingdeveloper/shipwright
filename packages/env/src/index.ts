@@ -84,6 +84,15 @@ export const env = createEnv({
     // Server-side fallback for the public var below so it can stay a secret if
     // preferred; either one enables the button.
     STRIPE_PRICE_ID: z.string().optional(),
+    // Web Push / VAPID (owned by `@repo/pwa`). ALL OPTIONAL: with no
+    // VAPID_PRIVATE_KEY the push sender no-ops (returns `{ skipped: true }`,
+    // warns once) and the dashboard push toggle shows a disabled state — so the
+    // app/tests/CI run with no push keys. Generate a keypair with
+    // `npx web-push generate-vapid-keys`. The PRIVATE key signs pushes server-side.
+    VAPID_PRIVATE_KEY: z.string().optional(),
+    // Contact URI sent to push services in the VAPID JWT (a `mailto:` or https
+    // URL). Defaults to a mailto in the sender if unset.
+    VAPID_SUBJECT: z.string().optional(),
   },
 
   /**
@@ -119,6 +128,10 @@ export const env = createEnv({
     // falls back to this. With neither set (and/or no secret key) the upgrade
     // button is hidden, so the keyless app/tests/CI never start a checkout.
     NEXT_PUBLIC_STRIPE_PRICE_ID: z.string().optional(),
+    // Public VAPID key (owned by `@repo/pwa`). OPTIONAL and NOT a secret — the
+    // browser needs it to subscribe to push. With it unset, push subscription is
+    // disabled in the UI and the package no-ops. Pair with VAPID_PRIVATE_KEY.
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
   },
 
   /**
@@ -149,6 +162,9 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_STRIPE_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
+    VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+    VAPID_SUBJECT: process.env.VAPID_SUBJECT,
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
   },
 
   /**

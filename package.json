@@ -1,6 +1,17 @@
 {
   "name": "shipwright",
   "private": true,
+  "description": "AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs fast.",
+  "license": "MIT",
+  "author": "Si Hyeong Lee (@writingdeveloper)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/writingdeveloper/shipwright.git"
+  },
+  "homepage": "https://github.com/writingdeveloper/shipwright#readme",
+  "bugs": {
+    "url": "https://github.com/writingdeveloper/shipwright/issues"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -15,6 +26,6 @@
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

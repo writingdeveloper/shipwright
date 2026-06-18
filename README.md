@@ -1,159 +1,67 @@
-# Turborepo starter
+# shipwright
 
-This Turborepo starter is maintained by the Turborepo core team.
+> An AI-native, modular, **own-it** Next.js + Turborepo starter for shipping many MVPs fast.
 
-## Using this example
+**shipwright** is an open-source monorepo starter you *assemble and own* — not a paid SaaS boilerplate you rent, and not a black box you fork. You wire vetted libraries (Next.js, Drizzle, Better Auth, Stripe, shadcn/ui) into your own structure, pick features at install time, and ship products from it.
 
-Run the following command:
+> ⚠️ **Status: early / work in progress.** Built in the open by dogfooding it on real apps — packages are *extracted from actual usage*, not pre-invented.
 
-```sh
-npx create-turbo@latest
+## Why another starter?
+
+Three things most starters don't do:
+
+1. **AI-native.** First-class Claude Code support ships *in the repo*: a curated root `CLAUDE.md`, per-package `CLAUDE.md` conventions, and a `.claude/` directory (skills, subagents, settings). The repo is built to be driven by an AI coding agent.
+2. **Modular, opt-in.** Pick the features you want at scaffold time (auth, payments, analytics, PWA…) instead of inheriting a fixed all-in-one app. _(Planned via `turbo gen`.)_
+3. **You own it.** Assembled from vetted libraries on the bare official `create-turbo` skeleton — no vendor lock-in, no per-seat fees, no someone-else's-opinions you can't remove.
+
+## Stack (default presets — all swappable)
+
+| Concern | Default |
+| --- | --- |
+| Framework | Next.js (App Router) + React |
+| Monorepo | Turborepo + pnpm |
+| UI | shadcn/ui + Tailwind |
+| Auth | Better Auth (self-hosted, no per-MAU fee) |
+| DB / ORM | Drizzle |
+| API | tRPC |
+| Payments | Stripe |
+| Email | Resend + React Email |
+| Analytics / errors | PostHog |
+| Observability | Sentry + Better Stack |
+
+Nothing here is mandatory — the install-time CLI lets you include only what you need, and every choice is a swappable preset.
+
+## Structure
+
+```text
+apps/
+  web/                 # reference app (the dogfood target)
+packages/
+  ui/                  # @repo/ui — shared shadcn/ui design system
+  eslint-config/       # @repo/eslint-config
+  typescript-config/   # @repo/typescript-config
+.claude/               # AI-native layer: skills, agents, settings
+CLAUDE.md              # repo-wide guidance for Claude Code
 ```
 
-## What's inside?
+Cross-cutting concerns (auth, db, payments, seo, email, observability…) become `@repo/*` packages **as the reference app needs them** — extracted from real usage, not pre-stubbed.
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## Getting started
 
 ```sh
-cd my-turborepo
-turbo build
+pnpm install
+pnpm dev
 ```
 
-Without global `turbo`, use your package manager:
+## Roadmap
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
-```
+- [ ] First reference app (`apps/web`) with auth + db
+- [ ] Extract `@repo/{auth,db,api}` from it
+- [ ] `@repo/seo`, `@repo/legal` (jurisdiction-agnostic: GDPR / CCPA / PIPA presets)
+- [ ] Optional `@repo/pwa` module (manifest + service worker + web-push)
+- [ ] `turbo gen` install-time feature picker
+- [ ] `create-shipwright` CLI on npm
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## License
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+[MIT](./LICENSE) © Si Hyeong Lee

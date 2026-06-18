@@ -96,9 +96,44 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+/**
+ * Application table: a user's to-do tasks (Phase 2).
+ *
+ * Each task is owned by exactly one `user`; the FK cascades so a deleted user's
+ * tasks are removed with them. Server Actions must still scope every read/write
+ * by `userId` (defence in depth — the DB cascade is not an authz boundary).
+ */
+export const task = sqliteTable(
+  "task",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    completed: integer("completed", { mode: "boolean" })
+      .default(false)
+      .notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("task_userId_idx").on(table.userId)],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  tasks: many(task),
+}));
+
+export const taskRelations = relations(task, ({ one }) => ({
+  user: one(user, {
+    fields: [task.userId],
+    references: [user.id],
+  }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -116,4 +151,4 @@ export const accountRelations = relations(account, ({ one }) => ({
 }));
 
 /** Aggregate of all tables — passed to the Drizzle client and Better Auth adapter. */
-export const schema = { user, session, account, verification };
+export const schema = { user, session, account, verification, task };

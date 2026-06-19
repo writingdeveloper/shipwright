@@ -18,11 +18,14 @@ import {
  * Client control to subscribe/unsubscribe this browser to web push and send a
  * test notification. Rendered only when push is configured (the server gates it).
  * In dev the service worker isn't registered, so `serviceWorker.ready` never
- * resolves — we surface that as a hint rather than hanging.
+ * resolves — we surface that as a hint rather than hanging. Every async action is
+ * wrapped so a rejected Server Action / denied permission shows an inline error
+ * instead of an unhandled rejection + a stuck UI.
  */
 export function PushToggle() {
   const [endpoint, setEndpoint] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -48,39 +51,72 @@ export function PushToggle() {
 
   const onSubscribe = () =>
     startTransition(async () => {
-      const sub = await subscribeToPush();
-      if (!sub?.endpoint) return;
-      await savePushSubscription(
-        sub as { endpoint: string; keys?: { p256dh?: string; auth?: string } },
-      );
-      setEndpoint(sub.endpoint);
+      setError(null);
+      try {
+        const sub = await subscribeToPush();
+        if (!sub?.endpoint) {
+          setError(
+            "Couldn't enable notifications (permission denied or unsupported).",
+          );
+          return;
+        }
+        await savePushSubscription(
+          sub as {
+            endpoint: string;
+            keys?: { p256dh?: string; auth?: string };
+          },
+        );
+        setEndpoint(sub.endpoint);
+      } catch {
+        setError("Couldn't enable notifications. Please try again.");
+      }
     });
 
   const onUnsubscribe = () =>
     startTransition(async () => {
-      const removed = await unsubscribeFromPush();
-      if (removed) await removePushSubscription(removed);
-      setEndpoint(null);
+      setError(null);
+      try {
+        const removed = await unsubscribeFromPush();
+        if (removed) await removePushSubscription(removed);
+        setEndpoint(null);
+      } catch {
+        setError("Couldn't disable notifications. Please try again.");
+      }
     });
 
-  const onTest = () => startTransition(() => sendTestPush());
+  const onTest = () =>
+    startTransition(async () => {
+      setError(null);
+      try {
+        await sendTestPush();
+      } catch {
+        setError("Couldn't send the test notification. Please try again.");
+      }
+    });
 
   return (
-    <div className="flex flex-wrap items-center gap-2" data-testid="push-controls">
-      {subscribed ? (
-        <>
-          <Button onClick={onUnsubscribe} disabled={pending} variant="outline">
-            Disable notifications
+    <div className="flex flex-col gap-2" data-testid="push-controls">
+      <div className="flex flex-wrap items-center gap-2">
+        {subscribed ? (
+          <>
+            <Button onClick={onUnsubscribe} disabled={pending} variant="outline">
+              Disable notifications
+            </Button>
+            <Button onClick={onTest} disabled={pending} variant="secondary">
+              Send test notification
+            </Button>
+          </>
+        ) : (
+          <Button onClick={onSubscribe} disabled={pending || !ready}>
+            Enable notifications
           </Button>
-          <Button onClick={onTest} disabled={pending} variant="secondary">
-            Send test notification
-          </Button>
-        </>
-      ) : (
-        <Button onClick={onSubscribe} disabled={pending || !ready}>
-          Enable notifications
-        </Button>
-      )}
+        )}
+      </div>
+      {error ? (
+        <p className="text-destructive text-sm" data-testid="push-error">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

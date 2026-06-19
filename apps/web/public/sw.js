@@ -82,7 +82,11 @@ self.addEventListener("fetch", (event) => {
         const cached = await cache.match(request);
         if (cached) return cached;
         const fresh = await fetch(request);
-        cache.put(request, fresh.clone());
+        // Only cache a complete, successful response. Cache.put throws on a 206
+        // (range) response, and caching a 4xx/5xx would serve it forever.
+        if (fresh && fresh.status === 200) {
+          cache.put(request, fresh.clone());
+        }
         return fresh;
       })(),
     );
@@ -101,7 +105,7 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => cached);
+        .catch(() => cached ?? Response.error());
       return cached ?? network;
     })(),
   );

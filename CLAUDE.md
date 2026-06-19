@@ -9,9 +9,10 @@ AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. T
 - `packages/db` (`@repo/db`) — Drizzle schema + libSQL client.
 - `packages/env` (`@repo/env`) — type-safe env schema (`@t3-oss/env-nextjs` + Zod); apps compose it in a root `env.ts`.
 - `packages/config` (`@repo/config`) — shared security headers + nonce-based CSP helpers; wired into `apps/web` via `next.config.ts` `headers()` + `proxy.ts`.
+- `packages/{security,payments,email,analytics,observability,seo,legal,pwa,api}` — integrations extracted from `apps/web`: rate limiting · Stripe billing · Resend email · PostHog analytics · Sentry + structured logger · SEO · legal/cookie-consent · PWA (manifest/SW/web-push) · opt-in tRPC. See README's structure tree for the full map.
 - `packages/eslint-config`, `packages/typescript-config` — shared tooling configs.
 - `.claude/` — skills, subagents, settings (the AI-native layer).
-- Several packages ship their own `CLAUDE.md` for area-specific rules (`@repo/auth`, `@repo/db`, `@repo/ui`, `@repo/env`); this root file holds repo-wide rules + pointers. Add one to a package when it accrues enough local rules to warrant it.
+- Several packages ship their own `CLAUDE.md` for area-specific rules (`@repo/auth`, `@repo/db`, `@repo/ui`, `@repo/env`, `@repo/config`, `@repo/payments`, `@repo/pwa`, `@repo/api`); this root file holds repo-wide rules + pointers. Add one to a package when it accrues enough local rules to warrant it.
 
 ## Conventions
 - Package manager: **pnpm**. Monorepo: **Turborepo**.
@@ -24,7 +25,7 @@ AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. T
 - **CSP is nonce-based, in the proxy** — `apps/web/proxy.ts` mints a per-request nonce and emits a strict CSP (`@repo/config/csp`); static security headers come from `next.config.ts` `headers()` (`@repo/config/headers`). Nonce ⇒ pages render dynamically. Don't add `'unsafe-inline'`/`'unsafe-eval'` to prod scripts. (Next 16 renamed `middleware.ts` → `proxy.ts`.)
 - **Env**: validation schemas live in the package that owns the vars; each app composes them in a root `env.ts` (zod + `@t3-oss/env-nextjs`).
 - **Payment webhooks**: verify the signature, dedupe by event id (idempotency), return 2xx fast then process async, never depend on event ordering.
-- **Compliance is jurisdiction-agnostic**: a future `@repo/legal` ships GDPR / CCPA / PIPA presets — never hardcode one country.
+- **Compliance is jurisdiction-agnostic**: `@repo/legal` ships GDPR / CCPA / PIPA presets — never hardcode one country.
 
 ## The discipline (important)
 This starter IS the deliverable — but grow it by **extracting validated patterns from `apps/web` into `@repo/*`**, NOT by pre-creating empty abstraction packages. If a package has no real consumer yet, don't create it. Own structure / conventions / glue; adopt vetted libraries for auth / ORM / payments / crypto — never hand-roll those.

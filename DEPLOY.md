@@ -57,6 +57,7 @@ there). Summary of what each deploy needs:
 | Errors/perf (Sentry, `@repo/observability`) | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, and for source-map upload `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` + `SENTRY_PROJECT`, optional `SENTRY_TRACES_SAMPLE_RATE` | SDK never initialises; build not instrumented; no upload |
 | Rate-limit Redis (`@repo/security`) | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Falls back to an in-memory sliding window (fine for a single instance; set both for multi-instance) |
 | Billing (Stripe, `@repo/payments`) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` (+ optional `NEXT_PUBLIC_STRIPE_PRICE_ID`) | Stripe client never constructed; upgrade button hidden; webhook route answers 503 |
+| Web push (VAPID, `@repo/pwa`) | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Push UI disabled ("Push not configured"); the server sender no-ops. Generate a keypair with `npx web-push generate-vapid-keys`. The manifest + service worker (install + offline) work without keys — only push needs them. |
 | Logger level | `LOG_LEVEL` (`debug`\|`info`\|`warn`\|`error`) | `debug` in dev, `info` in prod |
 
 > **Multi-instance note.** If you run more than one replica (horizontal scaling),

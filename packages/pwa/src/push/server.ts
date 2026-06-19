@@ -1,4 +1,4 @@
-import { db, schema, eq, inArray } from "@repo/db";
+import { db, schema, and, eq, inArray } from "@repo/db";
 
 import { deliverPush, type PushPayload } from "./delivery";
 
@@ -37,11 +37,23 @@ export async function saveSubscription(
     });
 }
 
-/** Delete a subscription by endpoint (called on client unsubscribe). */
-export async function deleteSubscription(endpoint: string): Promise<void> {
+/**
+ * Delete a subscription by endpoint, scoped to its owner (called on client
+ * unsubscribe). Owner-scoped so a guessed/leaked endpoint can't let one user
+ * remove another's subscription (the DB cascade is not an authz boundary).
+ */
+export async function deleteSubscription(
+  userId: string,
+  endpoint: string,
+): Promise<void> {
   await db
     .delete(schema.pushSubscription)
-    .where(eq(schema.pushSubscription.endpoint, endpoint));
+    .where(
+      and(
+        eq(schema.pushSubscription.userId, userId),
+        eq(schema.pushSubscription.endpoint, endpoint),
+      ),
+    );
 }
 
 /** Load a user's subscriptions (owner-scoped read). */

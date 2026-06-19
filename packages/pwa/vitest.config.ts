@@ -18,5 +18,11 @@ export default defineConfig({
     environment: "node",
     include: ["test/**/*.test.ts"],
     setupFiles: ["./test/setup.ts"],
+    // server.test.ts uses a REAL libSQL temp DB migrated via a `drizzle-kit push`
+    // subprocess (the first test pays for it) — hence the roomy hook timeout. A
+    // single fork keeps the libSQL native module from loading in many workers.
+    hookTimeout: 60_000,
+    testTimeout: 20_000,
+    pool: "forks",
   },
 });

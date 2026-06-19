@@ -40,11 +40,11 @@ export async function savePushSubscription(subscription: {
   });
 }
 
-/** Remove a subscription by endpoint (on client unsubscribe). */
+/** Remove a subscription by endpoint, scoped to the signed-in owner. */
 export async function removePushSubscription(endpoint: string): Promise<void> {
-  await requireUserId();
+  const userId = await requireUserId();
   if (!endpoint) return;
-  await deleteSubscription(endpoint);
+  await deleteSubscription(userId, endpoint);
 }
 
 /** Send a test notification to all of this user's subscriptions. */

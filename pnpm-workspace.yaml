@@ -17,6 +17,9 @@ overrides:
   # drizzle-kit pulls esbuild 0.18 via the deprecated @esbuild-kit loader
   # (GHSA-67mh-4wv8-2f99, dev-server only). Pin to the patched line.
   "esbuild@<0.25.0": ">=0.25.0"
+  # posthog-js (@repo/analytics) pulls dompurify; <=3.4.10 has an ALLOWED_ATTR
+  # pollution advisory (GHSA-cmwh-pvxp-8882). Pin to the patched line.
+  "dompurify@<3.4.11": ">=3.4.11"
   # Compatibility override (not an advisory): changesets' transitive
   # @manypkg/get-packages pulls read-yaml-file@1.1.0, which calls js-yaml's
   # `safeLoad` — removed in js-yaml 4. The `js-yaml@<4.2.0 -> >=4.2.0` security

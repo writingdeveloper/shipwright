@@ -132,6 +132,10 @@ export const env = createEnv({
     // browser needs it to subscribe to push. With it unset, push subscription is
     // disabled in the UI and the package no-ops. Pair with VAPID_PRIVATE_KEY.
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+    // Google Search Console site verification token (consumed by `@repo/seo`'s
+    // createMetadata). OPTIONAL: when set, emits the `google-site-verification`
+    // meta tag; unset ⇒ no tag (no-op).
+    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
   },
 
   /**
@@ -165,6 +169,8 @@ export const env = createEnv({
     VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
     VAPID_SUBJECT: process.env.VAPID_SUBJECT,
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
 
   /**

@@ -34,7 +34,7 @@ the current `main`:
 | Email | Resend + React Email | ✅ In repo (`@repo/email`) |
 | Analytics | PostHog (consent-gated) | ✅ In repo (`@repo/analytics`) |
 | Observability | Sentry + structured logger | ✅ In repo (`@repo/observability`) |
-| SEO | metadata / sitemap / robots / JSON-LD | ✅ In repo (`@repo/seo`) |
+| SEO / GEO | metadata · sitemap · robots (AI crawlers) · JSON-LD (Article/FAQ/Breadcrumb) · llms.txt · OG image · Search Console | ✅ In repo (`@repo/seo`) |
 | Legal | privacy / ToS / cookie consent | ✅ In repo (`@repo/legal`) |
 | PWA | manifest + service worker + web-push | ✅ In repo (`@repo/pwa`) |
 | API style | Server Actions (+ optional tRPC) | ✅ Server Actions + tRPC (`@repo/api`) |

@@ -36,6 +36,8 @@ export type SeoSiteConfig = {
   readonly defaultImage?: string;
   /** Optional `@handle` (without the leading `@` is also accepted) for Twitter cards. */
   readonly twitterHandle?: string;
+  /** Optional search-engine verification tokens (e.g. Google Search Console). */
+  readonly verification?: { readonly google?: string };
 };
 
 /** Per-page metadata inputs. All optional — omit to inherit the site defaults. */
@@ -136,5 +138,8 @@ export function createMetadata(
     robots: noindex
       ? { index: false, follow: false }
       : { index: true, follow: true },
+    ...(site.verification?.google
+      ? { verification: { google: site.verification.google } }
+      : {}),
   };
 }

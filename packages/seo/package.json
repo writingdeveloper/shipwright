@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./metadata": "./src/metadata.ts",
     "./json-ld": "./src/json-ld.tsx",
-    "./routes": "./src/routes.ts"
+    "./routes": "./src/routes.ts",
+    "./og": "./src/og.tsx"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

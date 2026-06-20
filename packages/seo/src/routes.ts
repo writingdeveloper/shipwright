@@ -51,6 +51,15 @@ export function buildSitemap(
   }));
 }
 
+/** The AI/LLM crawlers we emit an explicit policy for when asked. */
+const AI_CRAWLERS = [
+  "GPTBot",
+  "OAI-SearchBot",
+  "ClaudeBot",
+  "PerplexityBot",
+  "Google-Extended",
+] as const;
+
 /** Options for {@link buildRobots}. */
 export type BuildRobotsOptions = {
   /** Absolute site base URL — used to make the `sitemap` URL absolute. */
@@ -61,11 +70,20 @@ export type BuildRobotsOptions = {
   readonly allow?: readonly string[];
   /** Sitemap path; defaults to `/sitemap.xml`. */
   readonly sitemapPath?: string;
+  /**
+   * Explicit policy for AI/LLM crawlers (GPTBot, ClaudeBot, PerplexityBot,
+   * Google-Extended, …). `"allow"` mirrors the default allow/disallow for them
+   * (so they can cite the public site); `"disallow"` blocks them entirely. Omit
+   * to leave them under the `*` rule (which already allows them).
+   */
+  readonly aiCrawlers?: "allow" | "disallow";
 };
 
 /**
- * Build a `MetadataRoute.Robots` allowing all user-agents by default, listing
- * any disallowed paths, and pointing `sitemap` at the absolute sitemap URL.
+ * Build a `MetadataRoute.Robots`. Always emits a `*` rule (allow + any
+ * disallows) and an absolute `sitemap`. When `aiCrawlers` is set, adds an
+ * explicit rule for the known AI crawlers so the site's stance on AI citation
+ * is unambiguous.
  */
 export function buildRobots(options: BuildRobotsOptions): MetadataRoute.Robots {
   const {
@@ -73,14 +91,70 @@ export function buildRobots(options: BuildRobotsOptions): MetadataRoute.Robots {
     disallow = [],
     allow = ["/"],
     sitemapPath = "/sitemap.xml",
+    aiCrawlers,
   } = options;
 
-  return {
-    rules: {
-      userAgent: "*",
+  const starRule = {
+    userAgent: "*",
+    allow: [...allow],
+    ...(disallow.length > 0 ? { disallow: [...disallow] } : {}),
+  };
+
+  const rules: NonNullable<MetadataRoute.Robots["rules"]> = [starRule];
+
+  if (aiCrawlers === "allow") {
+    rules.push({
+      userAgent: [...AI_CRAWLERS],
       allow: [...allow],
       ...(disallow.length > 0 ? { disallow: [...disallow] } : {}),
-    },
+    });
+  } else if (aiCrawlers === "disallow") {
+    rules.push({ userAgent: [...AI_CRAWLERS], disallow: ["/"] });
+  }
+
+  return {
+    rules,
     sitemap: absoluteUrl(baseUrl, sitemapPath),
   };
+}
+
+/** One link in an {@link buildLlmsTxt} section. */
+export type LlmsTxtLink = {
+  readonly title: string;
+  readonly url: string;
+  readonly note?: string;
+};
+
+/** One section in {@link buildLlmsTxt}. */
+export type LlmsTxtSection = {
+  readonly title: string;
+  readonly links: readonly LlmsTxtLink[];
+};
+
+/** Inputs for {@link buildLlmsTxt}. */
+export type BuildLlmsTxtOptions = {
+  readonly name: string;
+  readonly description: string;
+  readonly url: string | URL;
+  readonly sections?: readonly LlmsTxtSection[];
+};
+
+/**
+ * Build an `llms.txt` (the emerging standard giving AI systems a curated,
+ * LLM-readable index of a site): `# name`, a `> description` blockquote, then
+ * `## section` headings with `[title](url): note` bullet links.
+ */
+export function buildLlmsTxt(options: BuildLlmsTxtOptions): string {
+  const { name, description, sections = [] } = options;
+  const lines: string[] = [`# ${name}`, "", `> ${description}`, ""];
+  for (const section of sections) {
+    lines.push(`## ${section.title}`, "");
+    for (const link of section.links) {
+      lines.push(
+        `- [${link.title}](${link.url})${link.note ? `: ${link.note}` : ""}`,
+      );
+    }
+    lines.push("");
+  }
+  return lines.join("\n").trimEnd() + "\n";
 }

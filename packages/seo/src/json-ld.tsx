@@ -94,6 +94,74 @@ export function websiteJsonLd(options: WebSiteJsonLdOptions): JsonLdObject {
   };
 }
 
+/** Inputs for {@link articleJsonLd}. */
+export type ArticleJsonLdOptions = {
+  readonly headline: string;
+  readonly url: string;
+  readonly datePublished?: string;
+  readonly dateModified?: string;
+  readonly authorName?: string;
+  readonly image?: string;
+  readonly description?: string;
+};
+
+/** Build an `Article` schema.org node. */
+export function articleJsonLd(options: ArticleJsonLdOptions): JsonLdObject {
+  const {
+    headline,
+    url,
+    datePublished,
+    dateModified,
+    authorName,
+    image,
+    description,
+  } = options;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline,
+    url,
+    ...(datePublished ? { datePublished } : {}),
+    ...(dateModified ? { dateModified } : {}),
+    ...(authorName ? { author: { "@type": "Person", name: authorName } } : {}),
+    ...(image ? { image } : {}),
+    ...(description ? { description } : {}),
+  };
+}
+
+/** One question/answer pair for {@link faqJsonLd}. */
+export type FaqItem = { readonly question: string; readonly answer: string };
+
+/** Build a `FAQPage` schema.org node from question/answer pairs. */
+export function faqJsonLd(items: readonly FaqItem[]): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
+}
+
+/** One crumb for {@link breadcrumbJsonLd}. */
+export type Breadcrumb = { readonly name: string; readonly url: string };
+
+/** Build a `BreadcrumbList` schema.org node (1-based positions). */
+export function breadcrumbJsonLd(crumbs: readonly Breadcrumb[]): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((crumb, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: crumb.name,
+      item: crumb.url,
+    })),
+  };
+}
+
 /** Props for {@link JsonLd}. */
 export type JsonLdProps = {
   /** One schema.org node, or several to emit as a list. */

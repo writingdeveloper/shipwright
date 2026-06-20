@@ -24,16 +24,26 @@ export {
   JsonLd,
   organizationJsonLd,
   websiteJsonLd,
+  articleJsonLd,
+  faqJsonLd,
+  breadcrumbJsonLd,
   type JsonLdObject,
   type JsonLdProps,
   type OrganizationJsonLdOptions,
   type WebSiteJsonLdOptions,
+  type ArticleJsonLdOptions,
+  type FaqItem,
+  type Breadcrumb,
 } from "./json-ld";
 
 export {
   buildSitemap,
   buildRobots,
+  buildLlmsTxt,
   absoluteUrl,
   type SitemapEntry,
   type BuildRobotsOptions,
+  type BuildLlmsTxtOptions,
+  type LlmsTxtSection,
+  type LlmsTxtLink,
 } from "./routes";

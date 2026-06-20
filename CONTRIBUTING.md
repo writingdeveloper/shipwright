@@ -27,7 +27,13 @@ pnpm install
 
 # Configure the reference app (see apps/web/README.md for details):
 cp apps/web/.env.example apps/web/.env   # set BETTER_AUTH_SECRET (>= 32 chars)
-pnpm --filter @repo/db db:push           # create the local libSQL database
+
+# Create the local libSQL tables in the app's db file. db:push runs from
+# packages/db, so point DATABASE_URL at the app's file (absolute path):
+DATABASE_URL="file:$PWD/apps/web/local.db" pnpm --filter @repo/db db:push
+# Windows (PowerShell):
+# $env:DATABASE_URL="file:$($PWD.Path)\apps\web\local.db"; pnpm --filter @repo/db db:push
+
 pnpm dev --filter=web                    # http://localhost:3000
 ```
 

@@ -72,8 +72,24 @@ Cross-cutting concerns (auth, db, payments, seo, email, observability…) become
 
 ```sh
 pnpm install
-pnpm dev
+
+# 1) Configure the reference app
+cp apps/web/.env.example apps/web/.env   # then set BETTER_AUTH_SECRET (>= 32 chars)
+
+# 2) Create the local SQLite tables in the app's db file. db:push runs from
+#    packages/db, so point DATABASE_URL at the app's file (absolute path):
+#    macOS/Linux:
+DATABASE_URL="file:$PWD/apps/web/local.db" pnpm --filter @repo/db db:push
+#    Windows (PowerShell):
+#    $env:DATABASE_URL="file:$($PWD.Path)\apps\web\local.db"; pnpm --filter @repo/db db:push
+
+# 3) Run it
+pnpm dev --filter=web   # http://localhost:3000
 ```
+
+> Only `BETTER_AUTH_SECRET` is required — every third-party integration
+> gracefully no-ops until you add its key, so the app, tests, and CI run with
+> zero accounts.
 
 Or scaffold a fresh project from this starter with the CLI:
 

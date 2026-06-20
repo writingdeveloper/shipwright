@@ -1,42 +1,42 @@
 "use server";
 
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { auth } from "@repo/auth/server";
 import { and, db, eq, sql, task } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 
-import { normalizeTitle } from "./validation";
+import { requireUserId } from "../../lib/auth-actions";
+import { MAX_TITLE_LENGTH, normalizeTitle } from "./validation";
 
-/**
- * Resolve the signed-in user's id for a mutation, or bail out.
- *
- * Auth is verified INSIDE every action (repo rule): we never trust the page or
- * middleware to have gated this call. A missing session redirects to sign-in
- * rather than throwing a raw error to the client.
- */
-async function requireUserId(): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() });
+/** Result of {@link createTask}, surfaced inline by the add-task form. */
+export type CreateTaskState = {
+  readonly status: "idle" | "success" | "error";
+  readonly message?: string;
+};
 
-  if (!session) {
-    redirect("/sign-in");
-  }
-
-  return session.user.id;
-}
-
-export async function createTask(formData: FormData): Promise<void> {
+// `useActionState` signature: (previousState, formData) => nextState. The form
+// reads the returned state to show an inline rejection reason and to clear the
+// input on success — so a rejected or successful add is no longer silent.
+export async function createTask(
+  _prev: CreateTaskState,
+  formData: FormData,
+): Promise<CreateTaskState> {
   const userId = await requireUserId();
 
   // Validate via the shared pure helper (non-empty, trimmed, bounded length).
-  // Silently ignore rejected submissions (e.g. whitespace-only) instead of
-  // persisting junk rows — but record it (without the raw value) so a flood of
-  // rejects is visible in the logs/Sentry.
-  const title = normalizeTitle(formData.get("title"));
+  // Reject junk instead of persisting it, but tell the user WHY (and record the
+  // reject — without the raw value — so a flood is visible in logs/Sentry).
+  const raw = formData.get("title");
+  const title = normalizeTitle(raw);
   if (title === null) {
     logger.warn("createTask: rejected invalid title", { userId });
-    return;
+    const trimmedLength = typeof raw === "string" ? raw.trim().length : 0;
+    return {
+      status: "error",
+      message:
+        trimmedLength > MAX_TITLE_LENGTH
+          ? `Title must be at most ${MAX_TITLE_LENGTH} characters.`
+          : "Please enter a task title.",
+    };
   }
 
   try {
@@ -50,6 +50,7 @@ export async function createTask(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/dashboard");
+  return { status: "success" };
 }
 
 export async function toggleTask(formData: FormData): Promise<void> {

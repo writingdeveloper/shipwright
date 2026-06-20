@@ -13,10 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/ui/card";
-import { Input } from "@repo/ui/components/ui/input";
 
 import { SignOutButton } from "../../components/sign-out-button";
-import { createTask, deleteTask } from "./actions";
+import { deleteTask } from "./actions";
+import { AddTaskForm } from "./add-task-form";
 import { PushToggle } from "./push-toggle";
 import { TaskCheckbox } from "./task-checkbox";
 import { TrpcTaskList } from "./trpc-task-list";
@@ -141,22 +141,7 @@ export default async function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={createTask} className="flex items-start gap-2">
-              <div className="flex-1">
-                <label htmlFor="task-title" className="sr-only">
-                  Task title
-                </label>
-                <Input
-                  id="task-title"
-                  name="title"
-                  placeholder="e.g. Ship the tasks feature"
-                  autoComplete="off"
-                  maxLength={280}
-                  required
-                />
-              </div>
-              <Button type="submit">Add</Button>
-            </form>
+            <AddTaskForm />
           </CardContent>
         </Card>
 
@@ -202,7 +187,7 @@ export default async function DashboardPage() {
                         type="submit"
                         variant="ghost"
                         size="icon"
-                        className="text-muted-foreground hover:text-destructive size-8"
+                        className="text-muted-foreground hover:text-destructive"
                         aria-label={`Delete "${t.title}"`}
                       >
                         <Trash2Icon className="size-4" />

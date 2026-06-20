@@ -16,6 +16,8 @@ import {
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 
+import { PasswordInput } from "../../components/password-input";
+
 export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -50,7 +52,9 @@ export default function SignUpPage() {
     <main id="main" className="bg-background flex min-h-svh items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Create your account</CardTitle>
+          <CardTitle asChild>
+            <h1>Create your account</h1>
+          </CardTitle>
           <CardDescription>
             Sign up with your email and a password to get started.
           </CardDescription>
@@ -66,6 +70,7 @@ export default function SignUpPage() {
                 autoComplete="name"
                 placeholder="Ada Lovelace"
                 required
+                autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -81,24 +86,31 @@ export default function SignUpPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "signup-error" : undefined}
               />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="new-password"
                 placeholder="At least 8 characters"
                 minLength={8}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "signup-error" : undefined}
               />
             </div>
             {error ? (
-              <p className="text-destructive text-sm" role="alert">
+              <p
+                id="signup-error"
+                className="text-destructive text-sm"
+                role="alert"
+              >
                 {error}
               </p>
             ) : null}

@@ -16,6 +16,8 @@ import {
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 
+import { PasswordInput } from "../../components/password-input";
+
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -48,7 +50,9 @@ export default function SignInPage() {
     <main id="main" className="bg-background flex min-h-svh items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
+          <CardTitle asChild>
+            <h1>Welcome back</h1>
+          </CardTitle>
           <CardDescription>
             Sign in to your account with your email and password.
           </CardDescription>
@@ -64,24 +68,32 @@ export default function SignInPage() {
                 autoComplete="email"
                 placeholder="you@example.com"
                 required
+                autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "signin-error" : undefined}
               />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "signin-error" : undefined}
               />
             </div>
             {error ? (
-              <p className="text-destructive text-sm" role="alert">
+              <p
+                id="signin-error"
+                className="text-destructive text-sm"
+                role="alert"
+              >
                 {error}
               </p>
             ) : null}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import * as Sentry from "@sentry/nextjs";
 import { logger } from "@repo/observability/logger";
 import { Button } from "@repo/ui/components/ui/button";
 
@@ -18,8 +17,10 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
+    // Single report path: @repo/observability's logger forwards an `error`-level
+    // log (with the Error in `meta.error`) to Sentry when a DSN is configured.
+    // Calling Sentry.captureException here too would double-report the same error.
     logger.error("segment render error", { error, digest: error.digest });
-    Sentry.captureException(error);
   }, [error]);
 
   return (

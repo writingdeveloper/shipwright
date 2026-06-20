@@ -43,7 +43,7 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
   await acceptCookies(page);
   await page.getByLabel("Name").fill("Test User");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
 
   await page.waitForURL("**/dashboard");
@@ -113,7 +113,7 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
 
   // 6. Sign back in; assert the dashboard loads again for this user.
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
 
   await page.waitForURL("**/dashboard");
@@ -134,7 +134,7 @@ test("persistence: a task survives a sign-out / sign-in cycle", async ({
   await acceptCookies(page);
   await page.getByLabel("Name").fill("Persist User");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL("**/dashboard");
 
@@ -151,7 +151,7 @@ test("persistence: a task survives a sign-out / sign-in cycle", async ({
 
   // Sign back in.
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL("**/dashboard");
 
@@ -166,4 +166,36 @@ test("persistence: a task survives a sign-out / sign-in cycle", async ({
   await expect(page.getByTestId("trpc-task-count")).toContainText(
     "1 task(s) loaded over tRPC",
   );
+});
+
+test("add-task: blank title is rejected inline; a valid title clears the field", async ({
+  page,
+}) => {
+  const email = uniqueEmail();
+
+  await page.goto("/sign-up");
+  await acceptCookies(page);
+  await page.getByLabel("Name").fill("UX User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL("**/dashboard");
+  await expect(page.getByText("No tasks yet")).toBeVisible();
+
+  // Whitespace-only passes the browser `required` check but the action rejects
+  // it — the user gets an inline reason instead of a silent no-op, and no row
+  // is created.
+  await page.getByLabel("Task title").fill("   ");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByText("Please enter a task title.")).toBeVisible();
+  await expect(page.getByText("No tasks yet")).toBeVisible();
+
+  // A valid title is added AND the input is cleared for the next entry.
+  const title = `UX task ${Date.now()}`;
+  await page.getByLabel("Task title").fill(title);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(
+    page.getByRole("listitem").filter({ hasText: title }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Task title")).toHaveValue("");
 });

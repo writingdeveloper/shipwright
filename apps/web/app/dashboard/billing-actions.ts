@@ -1,11 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@repo/auth/server";
 import { logger } from "@repo/observability/logger";
 import { createCheckoutSession } from "@repo/payments";
 
+import { requireSession } from "../../lib/auth-actions";
 import { env } from "../../env";
 
 /**
@@ -27,10 +26,7 @@ import { env } from "../../env";
  * try/catch (and reached only on the success path).
  */
 export async function startCheckout(): Promise<void> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    redirect("/sign-in");
-  }
+  const session = await requireSession();
 
   const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 

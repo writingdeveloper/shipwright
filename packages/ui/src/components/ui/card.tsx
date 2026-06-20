@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Slot } from "radix-ui";
 
 import { cn } from "@repo/ui/lib/utils";
 
@@ -28,9 +29,17 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({
+  className,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"div"> & { asChild?: boolean }) {
+  // `asChild` lets a page render the title as the real heading element it needs
+  // for document outline / a11y (e.g. `<CardTitle asChild><h1>…</h1></CardTitle>`)
+  // while keeping the title's styling. Defaults to a styled <div> as before.
+  const Comp = asChild ? Slot.Root : "div";
   return (
-    <div
+    <Comp
       data-slot="card-title"
       className={cn("leading-none font-semibold", className)}
       {...props}

@@ -8,11 +8,11 @@ import type { PlopTypes } from "@turbo/gen";
  *   pnpm gen app            # scaffold apps/<name>       (alias: add-app)
  *   pnpm gen react-component# scaffold a @repo/ui component
  *
- * Run head-lessly (scriptable, e.g. from a Claude skill) by passing the prompt
- * answers as positional bypass args after `--`:
- *   pnpm gen package -- my-pkg
- *   pnpm gen app -- my-app
- *   pnpm gen react-component -- my-thing
+ * Run head-lessly (scriptable, e.g. from a Claude skill) via Turbo's `--args`
+ * flag — one positional per prompt, in order (NOT `-- name`, which Turbo rejects):
+ *   pnpm gen package --args my-pkg
+ *   pnpm gen app --args my-app 3200
+ *   pnpm gen react-component --args my-thing
  *
  * Each generated package/app is wired to the shared `@repo/*` config and passes
  * `pnpm install && pnpm check-types && lint && build` with zero manual edits.

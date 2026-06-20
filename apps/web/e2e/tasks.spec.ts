@@ -96,6 +96,8 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
     page.getByRole("listitem").filter({ hasText: taskTitle }),
   ).toHaveCount(0);
   await expect(page.getByText("No tasks yet")).toBeVisible();
+  // Focus moved to the section heading on delete (not lost to <body>).
+  await expect(page.locator("#tasks-heading")).toBeFocused();
 
   // 5. Sign out; assert redirect to a public page (sign-in) and that the
   //    dashboard is now gated.

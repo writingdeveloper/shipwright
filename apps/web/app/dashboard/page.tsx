@@ -1,11 +1,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Trash2Icon } from "lucide-react";
 import { auth } from "@repo/auth/server";
 import { db, desc, eq, task } from "@repo/db";
 import { isBillingConfigured, isPro } from "@repo/payments";
 import { isPushConfigured } from "@repo/pwa/config";
-import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,8 +13,8 @@ import {
 } from "@repo/ui/components/ui/card";
 
 import { SignOutButton } from "../../components/sign-out-button";
-import { deleteTask } from "./actions";
 import { AddTaskForm } from "./add-task-form";
+import { DeleteTaskButton } from "./delete-task-button";
 import { PushToggle } from "./push-toggle";
 import { TaskCheckbox } from "./task-checkbox";
 import { TrpcTaskList } from "./trpc-task-list";
@@ -175,7 +173,9 @@ export default async function DashboardPage({
         <Card>
           <CardHeader>
             <CardTitle asChild>
-              <h2>Your tasks</h2>
+              <h2 id="tasks-heading" tabIndex={-1}>
+                Your tasks
+              </h2>
             </CardTitle>
             {/* Live region: announces the new count to screen readers after a
                 task is added / toggled / deleted (the RSC list re-renders). */}
@@ -213,18 +213,7 @@ export default async function DashboardPage({
                     >
                       {t.title}
                     </label>
-                    <form action={deleteTask}>
-                      <input type="hidden" name="id" value={t.id} />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-destructive"
-                        aria-label={`Delete "${t.title}"`}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    </form>
+                    <DeleteTaskButton id={t.id} title={t.title} />
                   </li>
                 ))}
               </ul>

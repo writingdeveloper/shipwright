@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
-
+{{#if pwa}}import { securityHeaders } from "@repo/config/headers";
+{{/if}}
 const nextConfig: NextConfig = {
-  // Transpile the shared design system so its TS/JSX source is compiled by this
-  // app's Next pipeline (it ships source, not a build). Add other `@repo/*`
-  // packages here as this app starts consuming them.
-  transpilePackages: ["@repo/ui"],
-};
+  // Transpile shared `@repo/*` source (they ship TS/JSX, not a build). Add other
+  // `@repo/*` packages here as this app starts consuming them.
+  transpilePackages: [{{#if pwa}}"@repo/config", "@repo/pwa", {{/if}}"@repo/ui"],
+{{#if pwa}}  // Static, request-independent security headers on every route. The CSP is
+  // NOT here — it carries a per-request nonce and is set in `proxy.ts`.
+  async headers() {
+    return [{ source: "/:path*", headers: [...securityHeaders] }];
+  },
+{{/if}}};
 
 export default nextConfig;

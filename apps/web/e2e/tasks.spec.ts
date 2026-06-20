@@ -84,8 +84,8 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
     .getByRole("listitem")
     .filter({ hasText: taskTitle });
   await expect(toggledItem.getByRole("checkbox")).toBeChecked();
-  const titleSpan = toggledItem.locator("span", { hasText: taskTitle });
-  await expect(titleSpan).toHaveClass(/line-through/);
+  const titleLabel = toggledItem.locator("label", { hasText: taskTitle });
+  await expect(titleLabel).toHaveClass(/line-through/);
 
   // 4. Delete it; assert it's gone (empty state returns).
   await page
@@ -198,4 +198,13 @@ test("add-task: blank title is rejected inline; a valid title clears the field",
     page.getByRole("listitem").filter({ hasText: title }),
   ).toBeVisible();
   await expect(page.getByLabel("Task title")).toHaveValue("");
+
+  // The Stripe checkout outcome is surfaced on the billing card (previously
+  // silent). Verified here while already signed in — a separate sign-up would
+  // trip the auth rate limiter the security e2e deliberately exercises. The
+  // ?checkout navigations are GETs, so they don't hit the limiter.
+  await page.goto("/dashboard?checkout=success");
+  await expect(page.getByText(/Payment received/)).toBeVisible();
+  await page.goto("/dashboard?checkout=error");
+  await expect(page.getByText(/couldn.t start checkout/i)).toBeVisible();
 });

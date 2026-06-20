@@ -30,6 +30,7 @@ export function TaskCheckbox({
     <form ref={formRef} action={toggleTask} className="flex items-center">
       <input type="hidden" name="id" value={id} />
       <Checkbox
+        id={`task-${id}`}
         defaultChecked={completed}
         onCheckedChange={() => formRef.current?.requestSubmit()}
         aria-label={

@@ -22,7 +22,11 @@ import { TaskCheckbox } from "./task-checkbox";
 import { TrpcTaskList } from "./trpc-task-list";
 import { UpgradeButton } from "./upgrade-button";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
   // Verify auth in server code (not just middleware) per the repo's rules.
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -50,6 +54,10 @@ export default async function DashboardPage() {
   // keyless e2e sees a deterministic dashboard and is never redirected off-site.
   const pro = await isPro(session.user.id);
   const billingConfigured = isBillingConfigured();
+
+  // Surface the Stripe Checkout outcome — `startCheckout` redirects back to
+  // /dashboard?checkout=success|cancelled|error, which was previously silent.
+  const { checkout } = await searchParams;
 
   return (
     <main id="main" className="bg-background flex min-h-svh justify-center p-6">
@@ -89,6 +97,19 @@ export default async function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {checkout === "success" ? (
+              <p role="status" className="text-foreground mb-3 text-sm">
+                Payment received — your Pro access activates momentarily.
+              </p>
+            ) : checkout === "cancelled" ? (
+              <p role="status" className="text-muted-foreground mb-3 text-sm">
+                Checkout cancelled — no charge was made.
+              </p>
+            ) : checkout === "error" ? (
+              <p role="alert" className="text-destructive mb-3 text-sm">
+                We couldn&apos;t start checkout. Please try again.
+              </p>
+            ) : null}
             {pro ? (
               <p
                 data-testid="billing-pro-note"
@@ -182,15 +203,16 @@ export default async function DashboardPage() {
                       title={t.title}
                       completed={t.completed}
                     />
-                    <span
+                    <label
+                      htmlFor={`task-${t.id}`}
                       className={
                         t.completed
-                          ? "text-muted-foreground flex-1 text-sm line-through"
-                          : "flex-1 text-sm"
+                          ? "text-muted-foreground flex-1 cursor-pointer text-sm line-through"
+                          : "flex-1 cursor-pointer text-sm"
                       }
                     >
                       {t.title}
-                    </span>
+                    </label>
                     <form action={deleteTask}>
                       <input type="hidden" name="id" value={t.id} />
                       <Button

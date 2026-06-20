@@ -37,11 +37,11 @@ export function TrpcTaskList() {
           Actions).
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent role="status" aria-live="polite">
         {taskQuery.isPending ? (
           <p className="text-muted-foreground text-sm">Loading…</p>
         ) : taskQuery.isError ? (
-          <p className="text-muted-foreground text-sm">Failed to load.</p>
+          <p className="text-destructive text-sm">Failed to load.</p>
         ) : (
           <p className="text-sm" data-testid="trpc-task-count">
             {taskQuery.data.length} task(s) loaded over tRPC.

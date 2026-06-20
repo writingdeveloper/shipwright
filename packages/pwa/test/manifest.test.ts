@@ -26,4 +26,12 @@ describe("defineManifest", () => {
     expect(m.short_name).toBe("Acme");
     expect(m.theme_color).toBe("#123456");
   });
+
+  it("uses an icons override when provided (keeps defaults otherwise)", () => {
+    const svg = [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }];
+    const m = defineManifest({ icons: svg });
+    expect(m.icons).toEqual(svg);
+    // default is unchanged when no override is passed
+    expect(defineManifest().icons?.[0]?.src).toBe("/icons/icon-192.png");
+  });
 });

@@ -18,6 +18,8 @@ export type ManifestOverrides = {
   readonly backgroundColor?: string;
   /** Launch URL when opened from the home screen. */
   readonly startUrl?: string;
+  /** Override the icon set (defaults to the PNG trio under `public/icons/`). */
+  readonly icons?: MetadataRoute.Manifest["icons"];
 };
 
 /**
@@ -37,7 +39,7 @@ export function defineManifest(
     display: "standalone",
     background_color: overrides.backgroundColor ?? "#ffffff",
     theme_color: overrides.themeColor ?? "#0a0a0a",
-    icons: [
+    icons: overrides.icons ?? [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       {

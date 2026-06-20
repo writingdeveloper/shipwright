@@ -1,0 +1,36 @@
+"use client";
+
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
+import { logger } from "@repo/observability/logger";
+import { Button } from "@repo/ui/components/ui/button";
+
+/**
+ * Segment error boundary: catches render errors in a page/segment WITHOUT
+ * replacing the root layout (that is `global-error.tsx`). Logs always; forwards
+ * to Sentry when configured (no-op otherwise).
+ */
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    logger.error("segment render error", { error, digest: error.digest });
+    Sentry.captureException(error);
+  }, [error]);
+
+  return (
+    <main className="bg-background flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Something went wrong
+      </h1>
+      <p className="text-muted-foreground max-w-sm text-sm">
+        An unexpected error occurred. You can try again.
+      </p>
+      <Button onClick={reset}>Try again</Button>
+    </main>
+  );
+}

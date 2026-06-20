@@ -43,6 +43,13 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="antialiased">
+        {/* Keyboard a11y: jump past chrome straight to the page's <main id="main">. */}
+        <a
+          href="#main"
+          className="bg-background text-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+        >
+          Skip to content
+        </a>
         {/* Registers the static service worker in production (no-op in dev). */}
         <ServiceWorkerProvider />
         {/* schema.org Organization structured data (a JSON data block, not an

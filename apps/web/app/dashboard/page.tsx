@@ -52,7 +52,7 @@ export default async function DashboardPage() {
   const billingConfigured = isBillingConfigured();
 
   return (
-    <main className="bg-background flex min-h-svh justify-center p-6">
+    <main id="main" className="bg-background flex min-h-svh justify-center p-6">
       <div className="flex w-full max-w-2xl flex-col gap-6 py-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">

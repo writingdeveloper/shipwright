@@ -11,7 +11,7 @@ import {
 
 export default function Home() {
   return (
-    <main className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6">
+    <main id="main" className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Shipwright</CardTitle>

@@ -54,3 +54,32 @@ export function analyticsConnectSrc(): string[] {
     return [];
   }
 }
+
+/**
+ * GA4 — a SEPARATE, optional analytics provider that coexists with PostHog.
+ * Gated by its own `NEXT_PUBLIC_GA_ID`; with no id the GA4 component is a no-op
+ * (gtag is never loaded). Like PostHog, it is ALSO consent-gated at runtime.
+ */
+
+/** The GA4 measurement id, or `undefined` when GA4 is not configured. */
+export function googleAnalyticsId(): string | undefined {
+  return env.NEXT_PUBLIC_GA_ID;
+}
+
+/** Is GA4 configured? True only when a measurement id is set. */
+export function isGoogleAnalyticsEnabled(): boolean {
+  return Boolean(env.NEXT_PUBLIC_GA_ID);
+}
+
+/**
+ * The CSP `connect-src` origins GA4 needs — but ONLY when configured. Empty
+ * otherwise so the production CSP is not broadened for a feature that will never
+ * connect. (gtag.js itself loads via a nonce'd script under `strict-dynamic`.)
+ */
+export function gaConnectSrc(): string[] {
+  if (!isGoogleAnalyticsEnabled()) return [];
+  return [
+    "https://www.google-analytics.com",
+    "https://www.googletagmanager.com",
+  ];
+}

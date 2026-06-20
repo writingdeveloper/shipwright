@@ -63,3 +63,26 @@ describe("analytics config WITH a key", () => {
     expect(analyticsConnectSrc()).toEqual([new URL(DEFAULT_POSTHOG_HOST).origin]);
   });
 });
+
+describe("GA4 config (separate from PostHog)", () => {
+  const GA = "NEXT_PUBLIC_GA_ID";
+  afterEach(() => delete process.env[GA]);
+
+  it("is disabled with no connect-src when no GA id is set (default)", async () => {
+    delete process.env[GA];
+    const { isGoogleAnalyticsEnabled, gaConnectSrc } = await import(
+      "../src/config"
+    );
+    expect(isGoogleAnalyticsEnabled()).toBe(false);
+    expect(gaConnectSrc()).toEqual([]);
+  });
+
+  it("is enabled and broadens connect-src when a GA id is set", async () => {
+    process.env[GA] = "G-TEST123";
+    const { isGoogleAnalyticsEnabled, googleAnalyticsId, gaConnectSrc } =
+      await import("../src/config");
+    expect(isGoogleAnalyticsEnabled()).toBe(true);
+    expect(googleAnalyticsId()).toBe("G-TEST123");
+    expect(gaConnectSrc()).toContain("https://www.google-analytics.com");
+  });
+});

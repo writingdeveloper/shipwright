@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { createMetadata, JsonLd, organizationJsonLd } from "@repo/seo";
 import { CookieConsentBanner } from "@repo/legal/cookie-consent";
 import { PostHogProvider } from "@repo/analytics/provider";
+import { GoogleAnalytics } from "@repo/analytics/google-analytics";
 import { ServiceWorkerProvider } from "@repo/pwa/register";
 import "./globals.css";
 
@@ -62,6 +63,8 @@ export default async function RootLayout({
             and a fresh clone are unaffected; with a key it still initialises only
             after the user accepts cookies (via @repo/legal consent). */}
         <PostHogProvider>
+          {/* Consent-gated GA4 (coexists with PostHog; no-op without NEXT_PUBLIC_GA_ID). */}
+          <GoogleAnalytics />
           {children}
           {/* Opt-in cookie consent. Rendered by Next so the nonce CSP covers it;
               non-blocking by design (bottom strip, click-through wrapper) so it

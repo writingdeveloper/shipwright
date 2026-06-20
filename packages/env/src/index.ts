@@ -136,6 +136,9 @@ export const env = createEnv({
     // createMetadata). OPTIONAL: when set, emits the `google-site-verification`
     // meta tag; unset ⇒ no tag (no-op).
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
+    // GA4 measurement id (owned by `@repo/analytics`). OPTIONAL: with no id the
+    // GA4 component no-ops (gtag never loads). Consent-gated even when set.
+    NEXT_PUBLIC_GA_ID: z.string().optional(),
   },
 
   /**
@@ -171,6 +174,7 @@ export const env = createEnv({
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
   },
 
   /**

@@ -33,5 +33,10 @@ export {
   analyticsKey,
   analyticsHost,
   analyticsConnectSrc,
+  isGoogleAnalyticsEnabled,
+  googleAnalyticsId,
+  gaConnectSrc,
   DEFAULT_POSTHOG_HOST,
 } from "./config";
+
+export { GoogleAnalytics } from "./google-analytics";

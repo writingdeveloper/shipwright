@@ -8,7 +8,8 @@
     "./provider": "./src/provider.tsx",
     "./client": "./src/use-analytics.ts",
     "./server": "./src/server.ts",
-    "./config": "./src/config.ts"
+    "./config": "./src/config.ts",
+    "./google-analytics": "./src/google-analytics.tsx"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

@@ -5,7 +5,7 @@ import {
   generateNonce,
   NONCE_HEADER,
 } from "@repo/config/csp";
-import { analyticsConnectSrc } from "@repo/analytics/config";
+import { analyticsConnectSrc, gaConnectSrc } from "@repo/analytics/config";
 import { sentryConnectSrc } from "@repo/observability/config";
 import { logger } from "@repo/observability/logger";
 import { createRateLimiter } from "@repo/security/ratelimit";
@@ -124,6 +124,7 @@ function withCsp(request: NextRequest): NextResponse {
   const connectSrc = [
     ...authConnectSrc,
     ...analyticsConnectSrc(),
+    ...gaConnectSrc(),
     ...sentryConnectSrc(),
   ];
 

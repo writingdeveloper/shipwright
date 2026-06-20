@@ -11,7 +11,7 @@ export const metadata: Metadata = {
  */
 export default function OfflinePage() {
   return (
-    <main className="bg-background flex min-h-svh flex-col items-center justify-center gap-3 p-6 text-center">
+    <main id="main" className="bg-background flex min-h-svh flex-col items-center justify-center gap-3 p-6 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">
         You&apos;re offline
       </h1>

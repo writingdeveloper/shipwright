@@ -33,3 +33,20 @@ test("favicon (svg) and apple-icon are served", async ({ request }) => {
   expect((await request.get("/icon.svg")).status()).toBe(200);
   expect((await request.get("/apple-icon")).status()).toBe(200);
 });
+
+test("privacy page emits BreadcrumbList structured data", async ({ request }) => {
+  const res = await request.get("/privacy");
+  expect(res.status()).toBe(200);
+  const html = await res.text();
+  expect(html).toContain('"@type":"BreadcrumbList"');
+  expect(html).toContain("Privacy Policy");
+});
+
+test("content pages expose the skip-link target (main#main)", async ({
+  page,
+}) => {
+  for (const path of ["/sign-in", "/sign-up", "/privacy", "/terms"]) {
+    await page.goto(path);
+    await expect(page.locator("main#main")).toBeVisible();
+  }
+});

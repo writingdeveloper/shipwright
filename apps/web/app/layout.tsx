@@ -13,10 +13,16 @@ import { seoSite, SITE_NAME, SITE_URL } from "../lib/site";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
+  // Show fallback text immediately, swap in Geist when loaded (avoids FOIT / a
+  // blank render-blocking flash); the fallback stack keeps layout stable (CLS).
+  display: "swap",
+  fallback: ["system-ui", "arial"],
 });
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
+  display: "swap",
+  fallback: ["ui-monospace", "monospace"],
 });
 
 // Root metadata via @repo/seo: sets metadataBase (so canonical/OG/sitemap URLs

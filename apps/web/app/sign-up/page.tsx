@@ -47,7 +47,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="bg-background flex min-h-svh items-center justify-center p-6">
+    <main id="main" className="bg-background flex min-h-svh items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Create your account</CardTitle>

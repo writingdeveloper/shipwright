@@ -65,6 +65,15 @@ there). Summary of what each deploy needs:
 > set the Upstash Redis vars so the rate-limit window is shared across instances.
 > A single container/instance works fine on the in-memory default.
 
+> **Email deliverability.** Before relying on transactional email, **verify your
+> sending domain in Resend and add SPF + DKIM + DMARC DNS records.** Under 2026
+> Gmail/Yahoo bulk-sender rules, mail from an unauthenticated domain is routed to
+> spam — so welcome/reset emails silently fail without this. `EMAIL_FROM` must be
+> on the verified domain; `sendEmail` also accepts a per-message `replyTo`.
+
+> **Health check.** `GET /api/health` returns `200 {"status":"ok"}` (liveness, no
+> DB dependency) — point your container platform's health probe at it.
+
 ---
 
 ## Database: Turso / libSQL

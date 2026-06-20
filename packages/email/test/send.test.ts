@@ -1,5 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Mock Resend so the "with key" reply-to test never makes a network call.
+// `new Resend(key)` is a constructor, so the mock must be a class (an arrow
+// function has no [[Construct]] and would throw "is not a constructor").
+const sendMock = vi.hoisted(() => vi.fn());
+vi.mock("resend", () => ({
+  Resend: class {
+    emails = { send: sendMock };
+  },
+}));
+
 /**
  * Graceful-degradation guard for the send helpers.
  *
@@ -72,5 +82,30 @@ describe("sendEmail (no Resend key)", () => {
     });
 
     expect(result.skipped).toBe(true);
+  });
+});
+
+describe("sendEmail forwards replyTo (with key, Resend mocked)", () => {
+  beforeEach(() => {
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.EMAIL_FROM = "Acme <noreply@acme.com>";
+    sendMock.mockReset();
+    sendMock.mockResolvedValue({ data: { id: "e1" }, error: null });
+  });
+
+  it("passes replyTo through to resend.emails.send", async () => {
+    const { sendEmail, WelcomeEmail } = await import("../src/index");
+    const { createElement } = await import("react");
+
+    await sendEmail({
+      to: "user@example.com",
+      subject: "Hi",
+      react: createElement(WelcomeEmail, { name: "Ada" }),
+      replyTo: "support@acme.com",
+    });
+
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({ replyTo: "support@acme.com" }),
+    );
   });
 });

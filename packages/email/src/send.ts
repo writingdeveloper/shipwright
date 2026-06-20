@@ -41,6 +41,8 @@ export type SendEmailArgs = {
    * `@repo/env`; required (here or there) for an actual send.
    */
   readonly from?: string;
+  /** Optional `Reply-To` address for the message. */
+  readonly replyTo?: string;
 };
 
 // Lazily-constructed singleton so we build the Resend client at most once, and
@@ -98,6 +100,7 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendResult> {
       subject: args.subject,
       html,
       text,
+      ...(args.replyTo ? { replyTo: args.replyTo } : {}),
     });
 
     if (error) {

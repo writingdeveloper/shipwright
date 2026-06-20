@@ -30,3 +30,5 @@ export {
   type SendEmailArgs,
   type SendWelcomeEmailArgs,
 } from "./send";
+
+export { isEmailConfigured } from "./config";

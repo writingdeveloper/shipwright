@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import * as Sentry from "@sentry/nextjs";
 import { logger } from "@repo/observability/logger";
 
 /**
@@ -9,11 +8,11 @@ import { logger } from "@repo/observability/logger";
  * root layout itself (the one place a normal `error.tsx` cannot reach), and is
  * the recommended spot to report render crashes to Sentry.
  *
- * Reporting is safe with or without Sentry: `Sentry.captureException` is a no-op
- * when Sentry was never initialised (no `NEXT_PUBLIC_SENTRY_DSN`), and the
- * structured `logger` ALWAYS records the error to the server logs regardless. So
- * with no Sentry env this still logs and renders the fallback — it just doesn't
- * forward to Sentry.
+ * Reporting is safe with or without Sentry: the structured `logger` ALWAYS
+ * records the error, and forwards it to Sentry via the registered bridge when a
+ * DSN is configured — so this does NOT also call `Sentry.captureException`
+ * (which would double-report). Mirrors `app/error.tsx`. With no DSN it just logs
+ * and renders the fallback.
  *
  * It must render its own <html>/<body> because it REPLACES the root layout when
  * the root layout is what failed.
@@ -26,11 +25,10 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    logger.error("unhandled render error", {
-      error,
-      digest: error.digest,
-    });
-    Sentry.captureException(error);
+    // Single report path (mirrors app/error.tsx): the logger forwards an
+    // error-level log (with the Error in meta.error) to Sentry when a DSN is
+    // configured, so calling Sentry.captureException here too would double-report.
+    logger.error("unhandled render error", { error, digest: error.digest });
   }, [error]);
 
   return (

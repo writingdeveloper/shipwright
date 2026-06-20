@@ -11,5 +11,8 @@ export default function robots(): MetadataRoute.Robots {
   return buildRobots({
     baseUrl: SITE_URL,
     disallow: ["/dashboard", "/api"],
+    // Explicitly allow AI/LLM crawlers so the public site can be cited in
+    // generative answers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, …).
+    aiCrawlers: "allow",
   });
 }

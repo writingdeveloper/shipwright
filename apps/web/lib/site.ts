@@ -25,6 +25,10 @@ export const seoSite: SeoSiteConfig = {
   description: SITE_DESCRIPTION,
   url: SITE_URL,
   twitterHandle: "writingdeveloper",
+  // Optional Search Console verification — emitted only when the token is set.
+  ...(env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 /**

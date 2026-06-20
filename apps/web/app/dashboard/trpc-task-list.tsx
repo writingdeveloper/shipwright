@@ -29,7 +29,9 @@ export function TrpcTaskList() {
   return (
     <Card data-testid="trpc-task-card">
       <CardHeader>
-        <CardTitle>Tasks (via tRPC)</CardTitle>
+        <CardTitle asChild>
+          <h2>Tasks (via tRPC)</h2>
+        </CardTitle>
         <CardDescription>
           Read through the @repo/api tRPC client (opt-in, alongside Server
           Actions).

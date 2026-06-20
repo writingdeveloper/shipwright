@@ -39,6 +39,9 @@ export default function SignInPage() {
 
     if (error) {
       setError(error.message ?? "Invalid email or password.");
+      // Move focus back to the first field so the keyboard/SR user lands on
+      // what to fix, not on the (now re-enabled) submit button.
+      document.getElementById("email")?.focus();
       return;
     }
 

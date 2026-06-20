@@ -24,7 +24,10 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="bg-background flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
+    <main
+      id="main"
+      className="bg-background flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center"
+    >
       <h1 className="text-2xl font-semibold tracking-tight">
         Something went wrong
       </h1>

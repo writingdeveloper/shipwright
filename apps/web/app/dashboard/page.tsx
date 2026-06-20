@@ -79,7 +79,9 @@ export default async function DashboardPage() {
 
         <Card data-testid="billing-card">
           <CardHeader>
-            <CardTitle>Billing</CardTitle>
+            <CardTitle asChild>
+              <h2>Billing</h2>
+            </CardTitle>
             <CardDescription>
               {pro
                 ? "You're on the Pro plan. Thanks for your support!"
@@ -109,7 +111,9 @@ export default async function DashboardPage() {
 
         <Card data-testid="push-card">
           <CardHeader>
-            <CardTitle>Notifications</CardTitle>
+            <CardTitle asChild>
+              <h2>Notifications</h2>
+            </CardTitle>
             <CardDescription>
               {isPushConfigured()
                 ? "Enable web push to get notified on this device."
@@ -135,7 +139,9 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Add a task</CardTitle>
+            <CardTitle asChild>
+              <h2>Add a task</h2>
+            </CardTitle>
             <CardDescription>
               Capture something you need to get done.
             </CardDescription>
@@ -147,8 +153,12 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Your tasks</CardTitle>
-            <CardDescription>
+            <CardTitle asChild>
+              <h2>Your tasks</h2>
+            </CardTitle>
+            {/* Live region: announces the new count to screen readers after a
+                task is added / toggled / deleted (the RSC list re-renders). */}
+            <CardDescription role="status" aria-live="polite">
               {tasks.length === 0
                 ? "Nothing here yet."
                 : `${completedCount} of ${tasks.length} done`}

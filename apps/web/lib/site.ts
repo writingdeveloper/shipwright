@@ -42,6 +42,9 @@ export const legalConfig: LegalConfig = {
   appName: SITE_NAME,
   entityName: SITE_NAME,
   websiteUrl: SITE_URL,
+  // PLACEHOLDER — replace before launch. Shown verbatim as the contact on the
+  // privacy & terms pages; the package default is the obvious `@example.com`.
+  contactEmail: "privacy@example.com",
   lastUpdated: "2026-06-17",
 };
 

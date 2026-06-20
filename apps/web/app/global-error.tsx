@@ -36,7 +36,18 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body className="antialiased">
-        <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
+        {/* This boundary replaces the root layout, so it must carry its own
+            skip-link + target (the layout's are gone when it renders). */}
+        <a
+          href="#main"
+          className="bg-background text-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+        >
+          Skip to content
+        </a>
+        <main
+          id="main"
+          className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center"
+        >
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
           <p className="text-sm text-muted-foreground">
             An unexpected error occurred. You can try again.

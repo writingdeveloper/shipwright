@@ -48,7 +48,7 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
 
   await page.waitForURL("**/dashboard");
   await expect(
-    page.getByRole("heading", { name: "Tasks" }),
+    page.getByRole("heading", { name: "Tasks", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
   // Empty state present before adding anything.
@@ -118,7 +118,7 @@ test("sign up → add → toggle → delete → sign out → sign back in", asyn
 
   await page.waitForURL("**/dashboard");
   await expect(
-    page.getByRole("heading", { name: "Tasks" }),
+    page.getByRole("heading", { name: "Tasks", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
 });

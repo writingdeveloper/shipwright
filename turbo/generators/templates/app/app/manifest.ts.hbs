@@ -1,0 +1,13 @@
+import type { MetadataRoute } from "next";
+import { defineManifest } from "@repo/pwa/manifest";
+
+// Web App Manifest, served by Next at `/manifest.webmanifest`. Replace the
+// placeholder `/icon.svg` with real PNG icons under `public/icons/` for store-
+// quality installs (192, 512, maskable-512) and pass them here.
+export default function manifest(): MetadataRoute.Manifest {
+  return defineManifest({
+    name: "{{ titleCase name }}",
+    shortName: "{{ titleCase name }}",
+    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+  });
+}

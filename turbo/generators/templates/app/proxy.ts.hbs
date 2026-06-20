@@ -1,0 +1,37 @@
+import { NextResponse, type NextRequest } from "next/server";
+import {
+  buildContentSecurityPolicy,
+  CONTENT_SECURITY_POLICY_HEADER,
+  generateNonce,
+  NONCE_HEADER,
+} from "@repo/config/csp";
+
+// Nonce-based Content-Security-Policy (the official Next.js App Router pattern).
+// Per request: mint a nonce, forward it + the policy on the request headers, and
+// set the policy on the response. `@repo/config/csp` already allows the service
+// worker (`worker-src 'self'`) and the manifest (`manifest-src 'self'`).
+export function proxy(request: NextRequest): NextResponse {
+  const nonce = generateNonce();
+  const isDev = process.env.NODE_ENV === "development";
+  const csp = buildContentSecurityPolicy({ nonce, isDev, connectSrc: [] });
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(NONCE_HEADER, nonce);
+  requestHeaders.set(CONTENT_SECURITY_POLICY_HEADER, csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set(CONTENT_SECURITY_POLICY_HEADER, csp);
+  return response;
+}
+
+export const config = {
+  matcher: [
+    {
+      source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+  ],
+};

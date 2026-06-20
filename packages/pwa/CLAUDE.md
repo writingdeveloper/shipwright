@@ -23,3 +23,8 @@ ships the code that talks to it.
   owner-scoped; prune 404/410 endpoints on send.
 - **CSP**: `worker-src 'self'` + `manifest-src 'self'` (in `@repo/config/csp`) keep
   the SW + manifest allowed under the strict nonce policy; push needs no `connect-src`.
+- **Scaffolding**: `pnpm gen app --args <name> <port> true` (or answer "y" to the
+  PWA prompt) generates a PWA-ready app — manifest + app-owned `sw.js` + `/offline`
+  + placeholder `icon.svg` + nonce-CSP `proxy.ts` + `<ServiceWorkerProvider/>`. The
+  generated `sw.js` mirrors `apps/web/public/sw.js`; keep them in sync. push +
+  install stay opt-in (add `@repo/pwa/push` / `@repo/pwa/install`).

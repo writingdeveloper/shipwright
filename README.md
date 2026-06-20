@@ -97,6 +97,21 @@ Or scaffold a fresh project from this starter with the CLI:
 npx create-shipwright my-app
 ```
 
+### Scaffolding a PWA app
+
+`pnpm gen app` scaffolds an installable + offline PWA in one step:
+
+```sh
+pnpm gen app            # interactive — answer "y" to "Make it a PWA?"
+# or headless:
+pnpm gen app --args my-app 3200 true
+```
+
+It adds a manifest, an app-owned service worker, an `/offline` page, a
+placeholder `app/icon.svg`, and a nonce-CSP `proxy.ts`. Replace the icon with
+real PNGs (`public/icons/`) before shipping. To add web push, pull in
+`@repo/pwa/push` (+ `@repo/db`); for an install button, `@repo/pwa/install`.
+
 ## Deploying
 
 See **[DEPLOY.md](./DEPLOY.md)** for host-agnostic recipes — Docker (Coolify /

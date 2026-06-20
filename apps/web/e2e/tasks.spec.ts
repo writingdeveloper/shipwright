@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 /**
  * Canonical end-to-end user journey against the REAL app (production build,
@@ -198,6 +199,14 @@ test("add-task: blank title is rejected inline; a valid title clears the field",
     page.getByRole("listitem").filter({ hasText: title }),
   ).toBeVisible();
   await expect(page.getByLabel("Task title")).toHaveValue("");
+
+  // Automated a11y scan of the AUTHENTICATED dashboard (one task in the list) —
+  // covers the h1/h2 outline, the aria-live count, the clickable task label, and
+  // contrast. Done in this signed-in flow so no extra sign-up hits the limiter.
+  const { violations } = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  expect(violations.map((v) => `${v.id} (${v.nodes.length})`)).toEqual([]);
 
   // The Stripe checkout outcome is surfaced on the billing card (previously
   // silent). Verified here while already signed in — a separate sign-up would

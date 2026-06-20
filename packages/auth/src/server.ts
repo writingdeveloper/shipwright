@@ -1,5 +1,10 @@
 import { db, schema } from "@repo/db";
-import { sendWelcomeEmail } from "@repo/email";
+import {
+  isEmailConfigured,
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "@repo/email";
 import { env } from "@repo/env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -26,7 +31,21 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    // Dynamic: enforce verification ONLY when email can actually be sent, so the
+    // keyless app/CI/e2e (no Resend) still signs in immediately, while a real
+    // deployment with email gates sign-in on a verified address.
+    requireEmailVerification: isEmailConfigured(),
+    // Better Auth calls this with the tokenised reset URL; we email it. Graceful:
+    // sendPasswordResetEmail no-ops without Resend config.
+    sendResetPassword: async ({ user, url }) => {
+      await sendPasswordResetEmail({ to: user.email, url });
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendVerificationEmail({ to: user.email, url });
+    },
   },
   databaseHooks: {
     user: {

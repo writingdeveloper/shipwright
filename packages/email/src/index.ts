@@ -24,8 +24,17 @@ export {
 } from "./welcome-email";
 
 export {
+  PasswordResetEmail,
+  type PasswordResetEmailProps,
+} from "./password-reset-email";
+
+export { VerifyEmail, type VerifyEmailProps } from "./verify-email";
+
+export {
   sendEmail,
   sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendVerificationEmail,
   type SendResult,
   type SendEmailArgs,
   type SendWelcomeEmailArgs,

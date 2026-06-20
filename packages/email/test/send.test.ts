@@ -109,3 +109,24 @@ describe("sendEmail forwards replyTo (with key, Resend mocked)", () => {
     );
   });
 });
+
+describe("sendPasswordResetEmail / sendVerificationEmail (no Resend key)", () => {
+  it("both no-op and return a skipped result without keys", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { sendPasswordResetEmail, sendVerificationEmail } = await import(
+      "../src/send"
+    );
+
+    const r1 = await sendPasswordResetEmail({
+      to: "a@example.com",
+      url: "https://x.com/reset?token=t",
+    });
+    const r2 = await sendVerificationEmail({
+      to: "a@example.com",
+      url: "https://x.com/verify?token=t",
+    });
+
+    expect(r1.skipped).toBe(true);
+    expect(r2.skipped).toBe(true);
+  });
+});

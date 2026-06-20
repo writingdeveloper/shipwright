@@ -3,6 +3,8 @@ import { render } from "@react-email/components";
 import { Resend } from "resend";
 import { env } from "@repo/env";
 
+import { PasswordResetEmail } from "./password-reset-email";
+import { VerifyEmail } from "./verify-email";
 import { WelcomeEmail } from "./welcome-email";
 
 /**
@@ -146,5 +148,33 @@ export function sendWelcomeEmail(
     to,
     subject: `Welcome to ${appName}`,
     react: createElement(WelcomeEmail, { name, appName, actionUrl }),
+  });
+}
+
+/** Send the password-reset email. Graceful: no-ops without Resend config. */
+export function sendPasswordResetEmail(args: {
+  readonly to: string;
+  readonly url: string;
+  readonly appName?: string;
+}): Promise<SendResult> {
+  const { to, url, appName = "Shipwright" } = args;
+  return sendEmail({
+    to,
+    subject: `Reset your ${appName} password`,
+    react: createElement(PasswordResetEmail, { url, appName }),
+  });
+}
+
+/** Send the email-verification email. Graceful: no-ops without Resend config. */
+export function sendVerificationEmail(args: {
+  readonly to: string;
+  readonly url: string;
+  readonly appName?: string;
+}): Promise<SendResult> {
+  const { to, url, appName = "Shipwright" } = args;
+  return sendEmail({
+    to,
+    subject: `Verify your ${appName} email`,
+    react: createElement(VerifyEmail, { url, appName }),
   });
 }

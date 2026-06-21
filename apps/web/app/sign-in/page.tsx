@@ -17,6 +17,7 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 
 import { PasswordInput } from "../../components/password-input";
+import { SocialSignIn } from "../../components/social-sign-in";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -62,6 +63,7 @@ export default function SignInPage() {
         </CardHeader>
         <form onSubmit={onSubmit}>
           <CardContent className="flex flex-col gap-4">
+            <SocialSignIn />
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input

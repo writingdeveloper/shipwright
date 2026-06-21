@@ -17,6 +17,7 @@ const PUBLIC_PAGES = [
   "/privacy",
   "/terms",
   "/offline",
+  "/ko",
 ] as const;
 
 for (const path of PUBLIC_PAGES) {

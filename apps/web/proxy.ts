@@ -182,14 +182,14 @@ export const config = {
     /*
      * (b) All page paths EXCEPT those that must NOT be locale-routed or need no
      * CSP, and skip prefetches (a `next/link` prefetch shouldn't pay for a fresh
-     * nonce). Excludes api, Next internals, and the root-level metadata/static
-     * routes (icon, apple-icon, opengraph-image, sitemap, robots, manifest,
-     * llms.txt, favicon) which live OUTSIDE `[locale]` and would 404 if rewritten
-     * to `/<locale>/...`.
+     * nonce). Excludes api, Next internals, every file-extension route (sw.js,
+     * sitemap.xml, robots.txt, manifest.webmanifest, icon.svg, llms.txt, favicon
+     * — matched by `.*\\..*`), and the extensionless metadata routes
+     * opengraph-image + apple-icon. These live OUTSIDE `[locale]` and would 404 if
+     * locale-rewritten (notably /sw.js, which must stay at the root to control /).
      */
     {
-      source:
-        "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon|opengraph-image|sitemap.xml|robots.txt|manifest.webmanifest|llms.txt).*)",
+      source: "/((?!api|_next|opengraph-image|apple-icon|.*\\..*).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

@@ -1,0 +1,17 @@
+{
+  "home": {
+    "title": "여러 MVP를 빠르게 출시하세요",
+    "subtitle": "당신이 소유하는 AI 네이티브 모듈식 Next.js + Turborepo 스타터.",
+    "getStarted": "시작하기"
+  },
+  "nav": {
+    "signIn": "로그인",
+    "signUp": "회원가입",
+    "dashboard": "대시보드"
+  },
+  "locale": {
+    "label": "언어",
+    "en": "English",
+    "ko": "한국어"
+  }
+}

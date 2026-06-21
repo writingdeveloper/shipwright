@@ -1,0 +1,17 @@
+{
+  "home": {
+    "title": "Ship many MVPs, fast",
+    "subtitle": "An AI-native, modular Next.js + Turborepo starter you own.",
+    "getStarted": "Get started"
+  },
+  "nav": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "dashboard": "Dashboard"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "ko": "한국어"
+  }
+}

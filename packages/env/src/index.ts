@@ -98,6 +98,14 @@ export const env = createEnv({
     // set, so the keyless app/tests/CI run with no social login.
     GITHUB_CLIENT_SECRET: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
+    // S3-compatible storage (owned by @repo/storage). ALL OPTIONAL: with any
+    // missing the upload UI shows "not configured" and the helpers throw only if
+    // called — so the app/tests/CI run with no bucket.
+    S3_ENDPOINT: z.string().url().optional(),
+    S3_REGION: z.string().optional(),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_BUCKET: z.string().optional(),
   },
 
   /**
@@ -188,6 +196,11 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     NEXT_PUBLIC_GITHUB_CLIENT_ID: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    S3_ENDPOINT: process.env.S3_ENDPOINT,
+    S3_REGION: process.env.S3_REGION,
+    S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
+    S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
+    S3_BUCKET: process.env.S3_BUCKET,
   },
 
   /**

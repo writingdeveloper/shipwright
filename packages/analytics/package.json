@@ -20,7 +20,7 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
+    "@types/react": "19.2.17",
     "eslint": "^9.39.1",
     "typescript": "5.9.2",
     "vitest": "^4.1.9"
@@ -29,11 +29,11 @@
     "@repo/env": "workspace:*",
     "@repo/legal": "workspace:*",
     "next": "16.2.9",
-    "posthog-js": "^1.390.2",
-    "posthog-node": "^5.38.0",
-    "react": "^19.2.0"
+    "posthog-js": "^1.391.2",
+    "posthog-node": "^5.38.2",
+    "react": "^19.2.7"
   },
   "peerDependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.7"
   }
 }

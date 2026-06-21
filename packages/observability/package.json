@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@repo/env": "workspace:*",
-    "@sentry/nextjs": "^10.58.0",
+    "@sentry/nextjs": "^10.59.0",
     "next": "16.2.9"
   }
 }

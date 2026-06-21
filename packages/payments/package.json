@@ -24,6 +24,6 @@
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/observability": "workspace:*",
-    "stripe": "^22.2.1"
+    "stripe": "^22.2.2"
   }
 }

@@ -50,23 +50,41 @@ function client(): S3Client {
   return cached;
 }
 
-/** Presigned PUT URL the browser uploads to directly (no bytes through us). */
-export function createPresignedUploadUrl(args: {
+/**
+ * Presigned PUT URL the browser uploads to directly (no bytes through us).
+ *
+ * @param args.key         S3 object key.
+ * @param args.contentType MIME type of the object being uploaded.
+ * @param args.expiresIn   Seconds until the URL expires (default: {@link PRESIGN_TTL_SECONDS}).
+ */
+export async function createPresignedUploadUrl(args: {
   key: string;
   contentType: string;
+  /** Seconds until the presigned URL expires. Defaults to {@link PRESIGN_TTL_SECONDS} (600 s). */
+  expiresIn?: number;
 }): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: env.S3_BUCKET,
     Key: args.key,
     ContentType: args.contentType,
   });
-  return getSignedUrl(client(), command, { expiresIn: PRESIGN_TTL_SECONDS });
+  return getSignedUrl(client(), command, {
+    expiresIn: args.expiresIn ?? PRESIGN_TTL_SECONDS,
+  });
 }
 
-/** Presigned GET URL for downloading a private object. */
-export function createPresignedDownloadUrl(key: string): Promise<string> {
+/**
+ * Presigned GET URL for downloading a private object.
+ *
+ * @param key       S3 object key.
+ * @param expiresIn Seconds until the URL expires (default: {@link PRESIGN_TTL_SECONDS}).
+ */
+export async function createPresignedDownloadUrl(
+  key: string,
+  expiresIn = PRESIGN_TTL_SECONDS,
+): Promise<string> {
   const command = new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: key });
-  return getSignedUrl(client(), command, { expiresIn: PRESIGN_TTL_SECONDS });
+  return getSignedUrl(client(), command, { expiresIn });
 }
 
 /** Delete one object — called when the owner removes a file record. */

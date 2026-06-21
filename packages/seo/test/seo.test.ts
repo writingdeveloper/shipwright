@@ -66,6 +66,11 @@ describe("createMetadata", () => {
     });
     expect(createMetadata(site).robots).toEqual({ index: true, follow: true });
   });
+
+  it("passes languages through to alternates.languages", () => {
+    const meta = createMetadata(site, { languages: { ko: "/ko" } });
+    expect(meta.alternates?.languages).toEqual({ ko: "/ko" });
+  });
 });
 
 describe("json-ld builders", () => {
@@ -116,6 +121,21 @@ describe("routes builders", () => {
     ]);
     expect(sitemap[0]?.lastModified).toBeInstanceOf(Date);
     expect(sitemap[1]?.priority).toBe(0.5);
+  });
+
+  it("buildSitemap preserves alternates.languages in the returned entry", () => {
+    const sitemap = buildSitemap("https://x", [
+      {
+        path: "/",
+        alternates: {
+          languages: { en: "https://x/", ko: "https://x/ko" },
+        },
+      },
+    ]);
+    expect(sitemap[0]?.alternates?.languages).toEqual({
+      en: "https://x/",
+      ko: "https://x/ko",
+    });
   });
 
   it("buildRobots allows all, lists disallows, and points sitemap absolutely", () => {

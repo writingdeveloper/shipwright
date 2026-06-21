@@ -16,12 +16,11 @@ import {
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 
-import { PasswordInput } from "../../components/password-input";
-import { SocialSignIn } from "../../components/social-sign-in";
+import { PasswordInput } from "../../../components/password-input";
+import { SocialSignIn } from "../../../components/social-sign-in";
 
-export default function SignUpPage() {
+export default function SignInPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +31,7 @@ export default function SignUpPage() {
     setError(null);
     setPending(true);
 
-    const { error } = await authClient.signUp.email({
-      name,
+    const { error } = await authClient.signIn.email({
       email,
       password,
     });
@@ -41,9 +39,9 @@ export default function SignUpPage() {
     setPending(false);
 
     if (error) {
-      setError(error.message ?? "Something went wrong. Please try again.");
-      // Move focus to the first field so the keyboard/SR user lands on what to
-      // fix, not on the (now re-enabled) submit button.
+      setError(error.message ?? "Invalid email or password.");
+      // Move focus back to the first field so the keyboard/SR user lands on
+      // what to fix, not on the (now re-enabled) submit button.
       document.getElementById("email")?.focus();
       return;
     }
@@ -57,29 +55,15 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>Create your account</h1>
+            <h1>Welcome back</h1>
           </CardTitle>
           <CardDescription>
-            Sign up with your email and a password to get started.
+            Sign in to your account with your email and password.
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
           <CardContent className="flex flex-col gap-4">
             <SocialSignIn />
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                placeholder="Ada Lovelace"
-                required
-                autoFocus
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -89,30 +73,37 @@ export default function SignUpPage() {
                 autoComplete="email"
                 placeholder="you@example.com"
                 required
+                autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "signup-error" : undefined}
+                aria-describedby={error ? "signin-error" : undefined}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-primary text-sm hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <PasswordInput
                 id="password"
                 name="password"
-                autoComplete="new-password"
-                placeholder="At least 8 characters"
-                minLength={8}
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "signup-error" : undefined}
+                aria-describedby={error ? "signin-error" : undefined}
               />
             </div>
             {error ? (
               <p
-                id="signup-error"
+                id="signin-error"
                 className="text-destructive text-sm"
                 role="alert"
               >
@@ -122,12 +113,12 @@ export default function SignUpPage() {
           </CardContent>
           <CardFooter className="mt-6 flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Creating account…" : "Create account"}
+              {pending ? "Signing in…" : "Sign in"}
             </Button>
             <p className="text-muted-foreground text-sm">
-              Already have an account?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
-                Sign in
+              Don&apos;t have an account?{" "}
+              <Link href="/sign-up" className="text-primary hover:underline">
+                Sign up
               </Link>
             </p>
           </CardFooter>

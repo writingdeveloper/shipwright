@@ -7,7 +7,7 @@ import {
   sendPushToUser,
 } from "@repo/pwa/push/server";
 
-import { requireUserId } from "../../lib/auth-actions";
+import { requireUserId } from "../../../lib/auth-actions";
 
 /**
  * Push Server Actions for the dashboard. Auth is verified INSIDE each action

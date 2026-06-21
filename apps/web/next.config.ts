@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { securityHeaders } from "@repo/config/headers";
 import { withObservabilityConfig } from "@repo/observability/next-config";
 
@@ -39,6 +40,7 @@ const nextConfig: NextConfig = {
     "@repo/security",
     "@repo/pwa",
     "@repo/api",
+    "@repo/i18n",
   ],
   serverExternalPackages: ["@libsql/client", "libsql", "web-push"],
 
@@ -60,4 +62,7 @@ const nextConfig: NextConfig = {
 // unchanged (no Sentry build instrumentation, no source-map upload, no failure);
 // with a DSN it adds the Sentry plugin, uploading source maps only when
 // SENTRY_AUTH_TOKEN + org + project are all present. See @repo/observability.
-export default withObservabilityConfig(nextConfig);
+// next-intl plugin: points at the per-request i18n config (locale + messages).
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
+export default withNextIntl(withObservabilityConfig(nextConfig));

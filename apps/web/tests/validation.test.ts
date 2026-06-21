@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_TITLE_LENGTH,
   normalizeTitle,
-} from "../app/dashboard/validation";
+} from "../app/[locale]/dashboard/validation";
 
 /**
  * Unit tests for the pure task-title validation rule.

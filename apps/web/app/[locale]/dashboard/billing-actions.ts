@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { logger } from "@repo/observability/logger";
 import { createCheckoutSession } from "@repo/payments";
 
-import { requireSession } from "../../lib/auth-actions";
-import { env } from "../../env";
+import { requireSession } from "../../../lib/auth-actions";
+import { env } from "../../../env";
 
 /**
  * Billing Server Action: start a Stripe hosted Checkout for the signed-in user.

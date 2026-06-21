@@ -4,7 +4,7 @@ import { absoluteUrl, breadcrumbJsonLd, createMetadata, JsonLd } from "@repo/seo
 import { TermsOfService } from "@repo/legal";
 import { Button } from "@repo/ui/components/ui/button";
 
-import { legalConfig, seoSite, SITE_URL } from "../../lib/site";
+import { legalConfig, seoSite, SITE_URL } from "../../../lib/site";
 
 export const metadata: Metadata = createMetadata(seoSite, {
   title: "Terms of Service",

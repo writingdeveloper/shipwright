@@ -10,7 +10,7 @@ import {
   isStorageConfigured,
 } from "@repo/storage";
 
-import { requireUserId } from "../../lib/auth-actions";
+import { requireUserId } from "../../../lib/auth-actions";
 
 /** Upload size ceiling (10 MB). Checked when minting the URL AND on save. */
 const MAX_FILE_BYTES = 10 * 1024 * 1024;

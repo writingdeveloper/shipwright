@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, db, eq, sql, task } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 
-import { requireUserId } from "../../lib/auth-actions";
+import { requireUserId } from "../../../lib/auth-actions";
 import { MAX_TITLE_LENGTH, normalizeTitle } from "./validation";
 
 /** Result of {@link createTask}, surfaced inline by the add-task form. */

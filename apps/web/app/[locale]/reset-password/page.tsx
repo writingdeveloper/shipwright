@@ -15,7 +15,7 @@ import {
 } from "@repo/ui/components/ui/card";
 import { Label } from "@repo/ui/components/ui/label";
 
-import { PasswordInput } from "../../components/password-input";
+import { PasswordInput } from "../../../components/password-input";
 
 export default function ResetPasswordPage() {
   const router = useRouter();

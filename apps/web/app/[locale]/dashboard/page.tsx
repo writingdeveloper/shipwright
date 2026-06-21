@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@repo/ui/components/ui/card";
 
-import { SignOutButton } from "../../components/sign-out-button";
+import { SignOutButton } from "../../../components/sign-out-button";
 import { AddTaskForm } from "./add-task-form";
 import { DeleteFileButton } from "./delete-file-button";
 import { DeleteTaskButton } from "./delete-task-button";

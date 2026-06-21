@@ -1,13 +1,16 @@
 {
   "home": {
-    "title": "여러 MVP를 빠르게 출시하세요",
-    "subtitle": "당신이 소유하는 AI 네이티브 모듈식 Next.js + Turborepo 스타터.",
-    "getStarted": "시작하기"
+    "tagline": "사용자별 할 일 앱. 계정을 만들거나 로그인하여 대시보드로 이동하세요.",
+    "body": "인증과 데이터베이스 기반은 Better Auth와 Drizzle(libSQL)로 구성되어 있습니다. 보호된 대시보드가 서버 측 인증 게이팅을 증명합니다."
   },
   "nav": {
     "signIn": "로그인",
     "signUp": "회원가입",
     "dashboard": "대시보드"
+  },
+  "footer": {
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관"
   },
   "locale": {
     "label": "언어",

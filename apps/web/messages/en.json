@@ -1,13 +1,16 @@
 {
   "home": {
-    "title": "Ship many MVPs, fast",
-    "subtitle": "An AI-native, modular Next.js + Turborepo starter you own.",
-    "getStarted": "Get started"
+    "tagline": "A per-user Tasks app. Create an account or sign in to reach your dashboard.",
+    "body": "Auth and the database foundation are wired up with Better Auth and Drizzle (libSQL). The protected dashboard proves server-side auth gating."
   },
   "nav": {
     "signIn": "Sign in",
     "signUp": "Sign up",
     "dashboard": "Dashboard"
+  },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Terms"
   },
   "locale": {
     "label": "Language",

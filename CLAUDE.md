@@ -9,10 +9,10 @@ AI-native, modular, own-it Next.js + Turborepo starter for shipping many MVPs. T
 - `packages/db` (`@repo/db`) — Drizzle schema + libSQL client.
 - `packages/env` (`@repo/env`) — type-safe env schema (`@t3-oss/env-nextjs` + Zod); apps compose it in a root `env.ts`.
 - `packages/config` (`@repo/config`) — shared security headers + nonce-based CSP helpers; wired into `apps/web` via `next.config.ts` `headers()` + `proxy.ts`.
-- `packages/{security,payments,email,analytics,observability,seo,legal,pwa,api}` — integrations extracted from `apps/web`: rate limiting · Stripe billing · Resend email · PostHog analytics · Sentry + structured logger · SEO · legal/cookie-consent · PWA (manifest/SW/web-push) · opt-in tRPC. See README's structure tree for the full map.
+- `packages/{security,payments,email,analytics,observability,seo,legal,pwa,api,storage,i18n}` — integrations extracted from `apps/web`: rate limiting · Stripe billing · Resend email · PostHog analytics · Sentry + structured logger · SEO · legal/cookie-consent · PWA (manifest/SW/web-push) · opt-in tRPC · S3-compatible file storage · next-intl i18n. See README's structure tree for the full map.
 - `packages/eslint-config`, `packages/typescript-config` — shared tooling configs.
 - `.claude/` — skills, subagents, settings (the AI-native layer).
-- Several packages ship their own `CLAUDE.md` for area-specific rules (`@repo/auth`, `@repo/db`, `@repo/ui`, `@repo/env`, `@repo/config`, `@repo/payments`, `@repo/pwa`, `@repo/api`); this root file holds repo-wide rules + pointers. Add one to a package when it accrues enough local rules to warrant it.
+- Several packages ship their own `CLAUDE.md` for area-specific rules (`@repo/auth`, `@repo/db`, `@repo/ui`, `@repo/env`, `@repo/config`, `@repo/payments`, `@repo/pwa`, `@repo/api`, `@repo/storage`, `@repo/i18n`); this root file holds repo-wide rules + pointers. Add one to a package when it accrues enough local rules to warrant it.
 
 ## Conventions
 - Package manager: **pnpm**. Monorepo: **Turborepo**.

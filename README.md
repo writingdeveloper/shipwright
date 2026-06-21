@@ -38,6 +38,8 @@ the current `main`:
 | Legal | privacy / ToS / cookie consent | ✅ In repo (`@repo/legal`) |
 | PWA | manifest + service worker + web-push | ✅ In repo (`@repo/pwa`) |
 | API style | Server Actions (+ optional tRPC) | ✅ Server Actions + tRPC (`@repo/api`) |
+| File storage | S3-compatible (R2 / S3 / MinIO) presigned upload | ✅ In repo (`@repo/storage`) |
+| i18n | next-intl URL-prefix routing + hreflang | ✅ In repo (`@repo/i18n`) |
 
 ✅ = wired into `apps/web` today (the third-party integrations gracefully no-op
 until you add their API key, so the app, tests, and CI run with zero accounts).
@@ -60,6 +62,8 @@ packages/
   seo/ legal/          # metadata/sitemap/robots/JSON-LD · privacy/ToS/cookie consent
   pwa/                 # @repo/pwa — manifest + service worker + web-push
   api/                 # @repo/api — opt-in tRPC layer (TanStack React Query)
+  storage/             # @repo/storage — S3-compatible presigned upload/download
+  i18n/                # @repo/i18n — next-intl locale routing + navigation
   create-shipwright/   # the `npx create-shipwright` scaffolder
   eslint-config/ typescript-config/   # shared tooling
 .claude/               # AI-native layer: skills, agents, settings

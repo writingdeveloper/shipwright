@@ -63,6 +63,12 @@ export type CreateMetadataOptions = {
   readonly noindex?: boolean;
   /** Extra keywords merged into the document metadata. */
   readonly keywords?: readonly string[];
+  /**
+   * Optional hreflang alternates for this page: language code → path (or URL),
+   * resolved against `metadataBase`. Becomes `alternates.languages` so crawlers
+   * find the page in each locale. Omit on a single-locale app.
+   */
+  readonly languages?: Readonly<Record<string, string>>;
 };
 
 /** Normalise a possible `@handle` into the leading-`@` form Twitter expects. */
@@ -96,6 +102,7 @@ export function createMetadata(
     type = "website",
     noindex = false,
     keywords,
+    languages,
   } = options;
 
   const metadataBase =
@@ -117,6 +124,7 @@ export function createMetadata(
     applicationName: site.name,
     alternates: {
       canonical: path,
+      ...(languages ? { languages: { ...languages } } : {}),
     },
     openGraph: {
       type,

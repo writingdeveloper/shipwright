@@ -29,6 +29,12 @@ export type SitemapEntry = {
   readonly changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"];
   /** 0.0–1.0 relative priority. */
   readonly priority?: number;
+  /**
+   * Optional hreflang alternates: a map of language code → absolute URL for this
+   * page in each locale. Serialised by Next into `<xhtml:link rel="alternate">`
+   * entries so crawlers index every language.
+   */
+  readonly alternates?: { readonly languages: Readonly<Record<string, string>> };
 };
 
 /**
@@ -48,6 +54,9 @@ export function buildSitemap(
       ? { changeFrequency: entry.changeFrequency }
       : {}),
     ...(entry.priority !== undefined ? { priority: entry.priority } : {}),
+    ...(entry.alternates
+      ? { alternates: { languages: { ...entry.alternates.languages } } }
+      : {}),
   }));
 }
 

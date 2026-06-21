@@ -93,6 +93,11 @@ export const env = createEnv({
     // Contact URI sent to push services in the VAPID JWT (a `mailto:` or https
     // URL). Defaults to a mailto in the sender if unset.
     VAPID_SUBJECT: z.string().optional(),
+    // OAuth provider secrets (owned by @repo/auth). OPTIONAL + paired with the
+    // public clientId: a provider registers only when BOTH its id and secret are
+    // set, so the keyless app/tests/CI run with no social login.
+    GITHUB_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
   },
 
   /**
@@ -139,6 +144,10 @@ export const env = createEnv({
     // GA4 measurement id (owned by `@repo/analytics`). OPTIONAL: with no id the
     // GA4 component no-ops (gtag never loads). Consent-gated even when set.
     NEXT_PUBLIC_GA_ID: z.string().optional(),
+    // OAuth clientIds (NOT secrets — they appear in the redirect URL). OPTIONAL:
+    // the social button for a provider shows only when its clientId is set.
+    NEXT_PUBLIC_GITHUB_CLIENT_ID: z.string().optional(),
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().optional(),
   },
 
   /**
@@ -175,6 +184,10 @@ export const env = createEnv({
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    NEXT_PUBLIC_GITHUB_CLIENT_ID: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID,
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
   },
 
   /**

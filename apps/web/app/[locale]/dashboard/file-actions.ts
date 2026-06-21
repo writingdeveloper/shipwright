@@ -109,7 +109,7 @@ export async function saveFileRecord(
     });
     throw error;
   }
-  revalidatePath("/dashboard");
+  revalidatePath("/[locale]/dashboard", "layout");
 }
 
 /**
@@ -158,5 +158,5 @@ export async function deleteFile(formData: FormData): Promise<void> {
   await db
     .delete(uploadedFile)
     .where(and(eq(uploadedFile.id, id), eq(uploadedFile.userId, userId)));
-  revalidatePath("/dashboard");
+  revalidatePath("/[locale]/dashboard", "layout");
 }

@@ -16,5 +16,8 @@
     "label": "언어",
     "en": "English",
     "ko": "한국어"
+  },
+  "layout": {
+    "skipToContent": "본문으로 건너뛰기"
   }
 }

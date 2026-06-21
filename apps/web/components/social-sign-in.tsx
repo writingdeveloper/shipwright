@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { authClient } from "@repo/auth/client";
 import { enabledSocialProviders } from "@repo/auth/config";
+import { defaultLocale } from "@repo/i18n";
 import { Button } from "@repo/ui/components/ui/button";
 
 const LABELS: Record<"github" | "google", string> = {
@@ -16,18 +18,21 @@ const LABELS: Record<"github" | "google", string> = {
  * configured, so the keyless app shows only the email/password form.
  */
 export function SocialSignIn() {
+  const locale = useLocale();
   const providers = enabledSocialProviders();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   if (providers.length === 0) return null;
 
+  const localePath = locale === defaultLocale ? "" : `/${locale}`;
+
   async function signInWith(provider: "github" | "google") {
     setError(null);
     setPending(true);
     const { error } = await authClient.signIn.social({
       provider,
-      callbackURL: "/dashboard",
+      callbackURL: `${localePath}/dashboard`,
     });
     // On success the browser is redirected, so we only reach here on error.
     setPending(false);

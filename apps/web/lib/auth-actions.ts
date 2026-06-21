@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { auth, type Session } from "@repo/auth/server";
+import { redirect } from "@repo/i18n/navigation";
 
 /**
  * Shared auth gate for the dashboard's Server Actions (task / push / billing).
@@ -14,13 +15,18 @@ import { auth, type Session } from "@repo/auth/server";
  * that tried to import it would fail to build.
  */
 export async function requireSession(): Promise<Session> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const [session, locale] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    getLocale(),
+  ]);
 
   if (!session) {
-    redirect("/sign-in");
+    redirect({ href: "/sign-in", locale });
   }
 
-  return session;
+  // `redirect` above is typed as `never` — the non-null assertion is a
+  // belt-and-suspenders cast for TypeScript's flow analysis across async/await.
+  return session!;
 }
 
 /** Convenience for the common case: just the signed-in user's id. */

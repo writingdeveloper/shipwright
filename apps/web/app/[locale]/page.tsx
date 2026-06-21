@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@repo/ui/components/ui/card";
 
-import { LocaleSwitcher } from "../../components/locale-switcher";
 import { seoSite } from "../../lib/site";
 
 export async function generateMetadata({
@@ -47,10 +46,6 @@ export default async function Home({
       id="main"
       className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6"
     >
-      {/* Demo: the language switcher lives top-right on the home page. */}
-      <div className="absolute right-4 top-4">
-        <LocaleSwitcher />
-      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>

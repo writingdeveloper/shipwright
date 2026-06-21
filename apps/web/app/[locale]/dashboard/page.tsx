@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { auth } from "@repo/auth/server";
+import { redirect } from "@repo/i18n/navigation";
 import { db, desc, eq, task } from "@repo/db";
 import { isBillingConfigured, isPro } from "@repo/payments";
 import { isPushConfigured } from "@repo/pwa/config";
@@ -39,13 +40,18 @@ export default async function DashboardPage({
   searchParams: Promise<{ checkout?: string }>;
 }) {
   // Verify auth in server code (not just middleware) per the repo's rules.
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const [session, locale] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    getLocale(),
+  ]);
 
   if (!session) {
-    redirect("/sign-in");
+    redirect({ href: "/sign-in", locale });
   }
+
+  // `redirect` is typed as `never`; non-null assertion bridges TypeScript's
+  // flow analysis across the async boundary.
+  const authedSession = session!;
 
   // Data Access scoped to the owner: only ever load this user's tasks, newest
   // first. The query is the read-side mirror of the per-user ownership the
@@ -53,7 +59,7 @@ export default async function DashboardPage({
   const tasks = await db
     .select()
     .from(task)
-    .where(eq(task.userId, session.user.id))
+    .where(eq(task.userId, authedSession.user.id))
     .orderBy(desc(task.createdAt));
 
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -63,7 +69,7 @@ export default async function DashboardPage({
   // upgrade button can ever start a real checkout. With no keys the button is
   // hidden and we render a stable "Billing not configured" note instead — so the
   // keyless e2e sees a deterministic dashboard and is never redirected off-site.
-  const pro = await isPro(session.user.id);
+  const pro = await isPro(authedSession.user.id);
   const billingConfigured = isBillingConfigured();
 
   // File storage (owner-scoped). listFiles returns [] when storage isn't
@@ -95,7 +101,7 @@ export default async function DashboardPage({
             <p className="text-muted-foreground text-sm">
               Signed in as{" "}
               <span className="text-foreground font-medium">
-                {session.user.email}
+                {authedSession.user.email}
               </span>
             </p>
           </div>

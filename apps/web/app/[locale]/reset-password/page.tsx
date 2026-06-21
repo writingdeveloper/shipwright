@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@repo/i18n/navigation";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
 import {

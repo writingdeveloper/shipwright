@@ -1,10 +1,9 @@
-import type { Metadata } from "next";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import localFont from "next/font/local";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
-import { routing } from "@repo/i18n";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { routing, defaultLocale, type Locale } from "@repo/i18n";
 import { createMetadata, JsonLd, organizationJsonLd } from "@repo/seo";
 import { CookieConsentBanner } from "@repo/legal/cookie-consent";
 import { PostHogProvider } from "@repo/analytics/provider";
@@ -12,6 +11,7 @@ import { GoogleAnalytics } from "@repo/analytics/google-analytics";
 import { ServiceWorkerProvider } from "@repo/pwa/register";
 import "../globals.css";
 
+import { LocaleSwitcher } from "../../components/locale-switcher";
 import { seoSite, SITE_NAME, SITE_URL } from "../../lib/site";
 
 const geistSans = localFont({
@@ -29,11 +29,22 @@ const geistMono = localFont({
   fallback: ["ui-monospace", "monospace"],
 });
 
-// Root metadata via @repo/seo: sets metadataBase (so canonical/OG/sitemap URLs
-// resolve absolutely), a "%s · Shipwright" title template that per-page titles
-// inherit, and the OpenGraph/Twitter defaults. Per-locale hreflang alternates
-// are added in the SEO task.
-export const metadata: Metadata = createMetadata(seoSite);
+/** Hreflang alternates on every page's <head>. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  await params;
+  return createMetadata(seoSite, {
+    languages: Object.fromEntries(
+      routing.locales.map((locale) => [
+        locale,
+        locale === defaultLocale ? "/" : `/${locale}`,
+      ]),
+    ),
+  });
+}
 
 /** Pre-render the locale segment for each configured locale at build time. */
 export function generateStaticParams() {
@@ -60,6 +71,12 @@ export default async function LocaleLayout({
   // rendering — see https://nextjs.org/docs/app/guides/content-security-policy.
   await connection();
 
+  const t = await getTranslations({ locale, namespace: "layout" });
+
+  // Locale-aware privacy page link: default locale is unprefixed.
+  const privacyHref =
+    locale === defaultLocale ? "/privacy" : `/${locale}/privacy`;
+
   return (
     <html
       lang={locale}
@@ -72,7 +89,7 @@ export default async function LocaleLayout({
           href="#main"
           className="bg-background text-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
         >
-          Skip to content
+          {t("skipToContent")}
         </a>
         {/* Registers the static service worker in production (no-op in dev). */}
         <ServiceWorkerProvider />
@@ -83,13 +100,19 @@ export default async function LocaleLayout({
             components (useTranslations). Messages are supplied by the request
             config (i18n/request.ts), so no explicit prop is needed. */}
         <NextIntlClientProvider>
+          {/* Site-wide locale switcher — fixed top-right on every page. MUST be
+              inside the provider so its client useTranslations/useLocale have the
+              i18n context (otherwise it throws during SSR). */}
+          <div className="fixed right-4 top-4 z-40">
+            <LocaleSwitcher />
+          </div>
           {/* Consent-gated PostHog analytics (no-op without NEXT_PUBLIC_POSTHOG_KEY). */}
           <PostHogProvider>
             {/* Consent-gated GA4 (coexists with PostHog; no-op without NEXT_PUBLIC_GA_ID). */}
             <GoogleAnalytics />
             {children}
             {/* Opt-in cookie consent. Rendered by Next so the nonce CSP covers it. */}
-            <CookieConsentBanner appName={SITE_NAME} privacyHref="/privacy" />
+            <CookieConsentBanner appName={SITE_NAME} privacyHref={privacyHref} />
           </PostHogProvider>
         </NextIntlClientProvider>
       </body>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useLocale } from "next-intl";
+import { Link } from "@repo/i18n/navigation";
+import { defaultLocale } from "@repo/i18n";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
 import {
@@ -16,6 +18,7 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 
 export default function ForgotPasswordPage() {
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -26,9 +29,11 @@ export default function ForgotPasswordPage() {
     setError(null);
     setPending(true);
 
+    const origin = window.location.origin;
+    const localePath = locale === defaultLocale ? "" : `/${locale}`;
     const { error } = await authClient.requestPasswordReset({
       email,
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${origin}${localePath}/reset-password`,
     });
 
     setPending(false);

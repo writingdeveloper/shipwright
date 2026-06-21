@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@repo/i18n/navigation";
 import { absoluteUrl, breadcrumbJsonLd, createMetadata, JsonLd } from "@repo/seo";
 import { TermsOfService } from "@repo/legal";
 import { Button } from "@repo/ui/components/ui/button";

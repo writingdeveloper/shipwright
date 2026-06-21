@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@repo/i18n/navigation";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
 

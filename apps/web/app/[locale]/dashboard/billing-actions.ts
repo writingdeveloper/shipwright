@@ -1,7 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirect as nextRedirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { logger } from "@repo/observability/logger";
+import { redirect } from "@repo/i18n/navigation";
 import { createCheckoutSession } from "@repo/payments";
 
 import { requireSession } from "../../../lib/auth-actions";
@@ -37,13 +39,15 @@ export async function startCheckout(): Promise<void> {
     cancelUrl: `${appUrl}/dashboard?checkout=cancelled`,
   });
 
+  const locale = await getLocale();
+
   if (!result.configured) {
     // Billing isn't set up — should be unreachable from the UI (button hidden),
     // but never throw: log and bounce back to the dashboard.
     logger.warn("startCheckout: billing not configured", {
       reason: result.reason,
     });
-    redirect("/dashboard");
+    redirect({ href: "/dashboard", locale });
   }
 
   if ("error" in result) {
@@ -51,10 +55,12 @@ export async function startCheckout(): Promise<void> {
     logger.error("startCheckout: failed to create checkout session", {
       error: result.error,
     });
-    redirect("/dashboard?checkout=error");
+    redirect({ href: "/dashboard?checkout=error", locale });
   }
 
-  // Success: hand off to Stripe's hosted Checkout (top-level redirect, so no
-  // Stripe.js and no CSP change).
-  redirect(result.url);
+  // After both guards above, result is `{ configured: true; url: string }`.
+  // Success: hand off to Stripe's hosted Checkout (top-level redirect to an
+  // external URL — use next/navigation directly since it's not an internal route).
+  const configuredResult = result as { readonly configured: true; readonly url: string };
+  nextRedirect(configuredResult.url);
 }

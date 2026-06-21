@@ -49,7 +49,7 @@ export async function createTask(
     throw error;
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/[locale]/dashboard", "layout");
   return { status: "success" };
 }
 
@@ -70,7 +70,7 @@ export async function toggleTask(formData: FormData): Promise<void> {
     .set({ completed: sql`NOT ${task.completed}` })
     .where(and(eq(task.id, id), eq(task.userId, userId)));
 
-  revalidatePath("/dashboard");
+  revalidatePath("/[locale]/dashboard", "layout");
 }
 
 export async function deleteTask(formData: FormData): Promise<void> {
@@ -85,5 +85,5 @@ export async function deleteTask(formData: FormData): Promise<void> {
   // signed-in user.
   await db.delete(task).where(and(eq(task.id, id), eq(task.userId, userId)));
 
-  revalidatePath("/dashboard");
+  revalidatePath("/[locale]/dashboard", "layout");
 }

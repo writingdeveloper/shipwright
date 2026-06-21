@@ -69,6 +69,8 @@ export type CreateMetadataOptions = {
    * find the page in each locale. Omit on a single-locale app.
    */
   readonly languages?: Readonly<Record<string, string>>;
+  /** Active locale, emitted as `openGraph.locale` (e.g. "en", "ko"). */
+  readonly locale?: string;
 };
 
 /** Normalise a possible `@handle` into the leading-`@` form Twitter expects. */
@@ -103,6 +105,7 @@ export function createMetadata(
     noindex = false,
     keywords,
     languages,
+    locale,
   } = options;
 
   const metadataBase =
@@ -133,6 +136,7 @@ export function createMetadata(
       description,
       url: path,
       images: [{ url: image }],
+      ...(locale ? { locale } : {}),
     },
     twitter: {
       card: "summary_large_image",

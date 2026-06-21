@@ -35,13 +35,11 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  await params;
+  const { locale } = await params;
   return createMetadata(seoSite, {
+    locale,
     languages: Object.fromEntries(
-      routing.locales.map((locale) => [
-        locale,
-        locale === defaultLocale ? "/" : `/${locale}`,
-      ]),
+      routing.locales.map((l) => [l, l === defaultLocale ? "/" : `/${l}`]),
     ),
   });
 }

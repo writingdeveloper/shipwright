@@ -124,6 +124,36 @@ export const task = sqliteTable(
 );
 
 /**
+ * Application table: a user's uploaded files (S3-compatible storage, @repo/storage).
+ *
+ * Owned by exactly one `user` (FK cascades, so a deleted user's files go with
+ * them). The bytes live in the bucket; this row is the owner-scoped metadata plus
+ * the object `key` (unique across the bucket). Server Actions scope every
+ * read/write by `userId` — the cascade is NOT an authz boundary. Deleting a row
+ * also deletes the object (see `apps/web` file-actions).
+ */
+export const uploadedFile = sqliteTable(
+  "uploaded_file",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // Object key in the bucket, namespaced by userId; unique across the bucket.
+    key: text("key").notNull().unique(),
+    name: text("name").notNull(),
+    size: integer("size").notNull(),
+    contentType: text("content_type").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("uploadedFile_userId_idx").on(table.userId)],
+);
+
+/**
  * Web Push subscriptions (owned by `@repo/pwa`).
  *
  * One row per browser push subscription, owned by a `user` (FK cascades, so a
@@ -225,6 +255,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
   tasks: many(task),
+  uploadedFiles: many(uploadedFile),
   pushSubscriptions: many(pushSubscription),
   subscription: one(subscription, {
     fields: [user.id],
@@ -242,6 +273,13 @@ export const subscriptionRelations = relations(subscription, ({ one }) => ({
 export const taskRelations = relations(task, ({ one }) => ({
   user: one(user, {
     fields: [task.userId],
+    references: [user.id],
+  }),
+}));
+
+export const uploadedFileRelations = relations(uploadedFile, ({ one }) => ({
+  user: one(user, {
+    fields: [uploadedFile.userId],
     references: [user.id],
   }),
 }));
@@ -277,6 +315,7 @@ export const schema = {
   account,
   verification,
   task,
+  uploadedFile,
   pushSubscription,
   processedStripeEvent,
   subscription,

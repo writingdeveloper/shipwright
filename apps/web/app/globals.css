@@ -1,5 +1,9 @@
 @import "@repo/ui/globals.css";
 
-/* Tailwind v4 scans this app's source automatically; also scan the shared
-   @repo/ui package source so classes used inside its components aren't purged. */
-@source "../../../packages/ui/src/**/*.{ts,tsx}";
+/* Tailwind v4 scans this app's source automatically; also scan every @repo/*
+   package's source so Tailwind classes rendered inside their components aren't
+   purged — e.g. the @repo/ui design system, the @repo/legal cookie banner /
+   legal pages (whose `bottom-0` would otherwise be dropped), the @repo/pwa
+   install button. A class used ONLY inside a package (not in app code) is purged
+   unless that package is scanned here. */
+@source "../../../packages/*/src/**/*.{ts,tsx}";

@@ -1,0 +1,16 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "noEmit": true,
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    // next-intl's createNavigation infers types through .pnpm paths that can't be
+    // named in a declaration file (TS2742). The app consumes src directly via
+    // transpilePackages, so this package emits no declarations.
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

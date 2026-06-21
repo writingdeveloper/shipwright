@@ -53,7 +53,13 @@ overrides:
 #   project are all set; with no token (dev/CI/default) nothing invokes it. So
 #   skipping the script is safe on every OS and keeps installs non-interactive.
 allowBuilds:
+  # @parcel/watcher + @swc/core arrive transitively via next-intl (@repo/i18n).
+  # next-intl ships compiled JS we consume directly, so neither native build is
+  # needed at runtime — skip them (like esbuild/sharp) to keep installs
+  # non-interactive on every OS. Linux CI is unaffected.
+  '@parcel/watcher': false
   "@sentry/cli": false
+  '@swc/core': false
   core-js: false
   esbuild: false
   sharp: false

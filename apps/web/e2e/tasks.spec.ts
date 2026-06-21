@@ -202,9 +202,20 @@ test("add-task: blank title is rejected inline; a valid title clears the field",
   ).toBeVisible();
   await expect(page.getByLabel("Task title")).toHaveValue("");
 
+  // File storage degrades gracefully: with no S3 keys the dashboard shows the
+  // "Storage not configured" card and no upload control (like billing/push).
+  // Checked here (already signed in) so no extra sign-up trips the rate limiter.
+  await expect(
+    page.getByRole("heading", { name: "Files", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByTestId("storage-not-configured")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Upload a file" }),
+  ).toHaveCount(0);
+
   // Automated a11y scan of the AUTHENTICATED dashboard (one task in the list) —
-  // covers the h1/h2 outline, the aria-live count, the clickable task label, and
-  // contrast. Done in this signed-in flow so no extra sign-up hits the limiter.
+  // covers the h1/h2 outline, the aria-live count, the clickable task label, the
+  // Files card, and contrast. Done signed-in so no extra sign-up hits the limiter.
   const { violations } = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

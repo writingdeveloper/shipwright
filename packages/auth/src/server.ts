@@ -47,6 +47,27 @@ export const auth = betterAuth({
       await sendVerificationEmail({ to: user.email, url });
     },
   },
+  // Register a provider ONLY when its public clientId + secret are both set, so
+  // the keyless app/tests/CI have no social login (graceful). clientId is public;
+  // the secret stays server-side.
+  socialProviders: {
+    ...(env.NEXT_PUBLIC_GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+      ? {
+          github: {
+            clientId: env.NEXT_PUBLIC_GITHUB_CLIENT_ID,
+            clientSecret: env.GITHUB_CLIENT_SECRET,
+          },
+        }
+      : {}),
+    ...(env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? {
+          google: {
+            clientId: env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+          },
+        }
+      : {}),
+  },
   databaseHooks: {
     user: {
       create: {

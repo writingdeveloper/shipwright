@@ -26,7 +26,7 @@ the current `main`:
 | Monorepo | Turborepo + pnpm | ✅ In repo |
 | UI | shadcn/ui + Tailwind | ✅ In repo (`@repo/ui`) |
 | Auth | Better Auth (self-hosted, no per-MAU fee) | ✅ In repo (`@repo/auth`) |
-| DB / ORM | Drizzle (libSQL/SQLite — local file or Turso) | ✅ In repo (`@repo/db`); Postgres = documented swap |
+| DB / ORM | Drizzle (libSQL/SQLite — local file or Turso) | ✅ In repo (`@repo/db`); Postgres = CI-tested swap path |
 | Env validation | `@t3-oss/env-nextjs` + Zod | ✅ In repo (`@repo/env`) |
 | Security | nonce CSP + security headers | ✅ In repo (`@repo/config`) |
 | Rate limiting | in-memory / Upstash | ✅ In repo (`@repo/security`) |

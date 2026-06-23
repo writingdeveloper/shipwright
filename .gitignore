@@ -22,6 +22,10 @@ blob-report
 .playwright
 playwright/.cache
 
+# drizzle-kit Postgres swap-path output (db:push:pg writes nothing here, but
+# db:generate would — keep it out of the tree).
+drizzle-pg
+
 # Local libSQL / SQLite database files
 local.db
 local.db-*

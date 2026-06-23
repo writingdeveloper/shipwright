@@ -1,0 +1,70 @@
+name: Postgres compat
+
+# Validates the documented SQLite→Postgres swap on EVERY push/PR so it cannot
+# rot silently. Separate from ci.yml (and running in parallel) so it can never
+# block the primary verify job: it provisions a real Postgres 16, applies the
+# pg-core schema with `drizzle-kit push`, and runs the task-ownership invariants
+# through the node-postgres driver. The libSQL path is untouched.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: pg-compat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pg-compat:
+    name: Postgres swap path (drizzle push + ownership tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: shipwright_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        # Wait until Postgres accepts connections before the steps run.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # drizzle.config.pg.ts, client.pg.ts and the pg test helper all read
+      # DATABASE_URL; point them at the service container. Throwaway CI creds,
+      # not secrets. BETTER_AUTH_* mirror ci.yml so @repo/env validates cleanly
+      # if anything transitively constructs it.
+      DATABASE_URL: postgresql://test:test@localhost:5432/shipwright_test
+      BETTER_AUTH_SECRET: ci-placeholder-secret-not-a-real-key-0123456789
+      BETTER_AUTH_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply Postgres schema (drizzle-kit push)
+        run: pnpm --filter @repo/db db:push:pg
+
+      - name: Ownership invariants on real Postgres (Vitest)
+        run: pnpm --filter @repo/db test:pg

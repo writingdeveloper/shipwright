@@ -6,6 +6,6 @@
     "module": "Preserve",
     "moduleResolution": "Bundler"
   },
-  "include": ["src", "drizzle.config.ts"],
+  "include": ["src", "drizzle.config.ts", "drizzle.config.pg.ts"],
   "exclude": ["node_modules", "dist"]
 }

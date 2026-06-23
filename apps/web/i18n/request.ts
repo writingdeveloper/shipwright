@@ -1,6 +1,7 @@
 import { hasLocale } from "next-intl";
 import { getRequestConfig } from "next-intl/server";
-import { routing } from "@repo/i18n";
+
+import { routing } from "./routing";
 
 /**
  * Per-request i18n config — resolve the active locale (validated against the

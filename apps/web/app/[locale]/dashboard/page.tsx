@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { auth } from "@repo/auth/server";
-import { redirect } from "@repo/i18n/navigation";
+import { redirect } from "../../../i18n/navigation";
 import { isPro } from "@repo/payments";
 import {
   Card,

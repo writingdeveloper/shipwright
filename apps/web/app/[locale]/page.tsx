@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { type Locale, routing } from "@repo/i18n";
-import { Link } from "@repo/i18n/navigation";
+import { type Locale, routing } from "../../i18n/routing";
+import { Link } from "../../i18n/navigation";
 import { createMetadata } from "@repo/seo";
 import { Button } from "@repo/ui/components/ui/button";
 import {

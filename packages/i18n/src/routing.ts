@@ -1,21 +1,20 @@
 import { defineRouting } from "next-intl/routing";
 
 /**
- * i18n routing config — the single source of truth for which locales exist.
+ * Factory for a next-intl routing config — the i18n MECHANISM.
  *
- * `localePrefix: "as-needed"` keeps the DEFAULT locale (`en`) prefix-free — `/`
- * and `/sign-in` stay exactly as they were — while other locales are prefixed
- * (`/ko/...`). So adding i18n leaves existing URLs, internal links, and the e2e
- * untouched, and SEO still gets per-language URLs + hreflang.
+ * @repo/i18n owns the mechanism; the APP owns the locale POLICY and calls this
+ * from `apps/web/i18n/routing.ts`. There is deliberately NO `routing` singleton
+ * here: each app declares its own locales, and removing the singleton means a
+ * consumer that forgets to migrate fails to COMPILE rather than silently dropping
+ * the locale prefix.
  *
- * GRACEFUL: set `locales` to a single entry (`["en"]`) and i18n becomes a
- * single-language no-op — no `/xx` routes, the LocaleSwitcher hides itself.
- * Adding `"ko"` here is the demo of how to grow to N languages.
+ * Pass `localePrefix: "as-needed"` for the starter convention — the default
+ * locale is unprefixed (`/`, `/sign-in`) and other locales are prefixed
+ * (`/ko/...`), so adding i18n leaves existing URLs + the e2e untouched while SEO
+ * still gets per-language URLs + hreflang.
  */
-export const routing = defineRouting({
-  locales: ["en", "ko"],
-  defaultLocale: "en",
-  localePrefix: "as-needed",
-});
+export const createRouting = defineRouting;
 
-export type Locale = (typeof routing.locales)[number];
+/** The routing config shape returned by {@link createRouting}. */
+export type Routing = ReturnType<typeof createRouting>;

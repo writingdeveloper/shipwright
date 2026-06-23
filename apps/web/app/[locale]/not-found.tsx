@@ -1,4 +1,4 @@
-import { Link } from "@repo/i18n/navigation";
+import { Link } from "../../i18n/navigation";
 import type { Metadata } from "next";
 import { Button } from "@repo/ui/components/ui/button";
 

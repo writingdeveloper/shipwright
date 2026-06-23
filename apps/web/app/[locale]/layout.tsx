@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import localFont from "next/font/local";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { routing, defaultLocale, type Locale } from "@repo/i18n";
+import { routing, defaultLocale, type Locale } from "../../i18n/routing";
 import { createMetadata, JsonLd, organizationJsonLd } from "@repo/seo";
 import { CookieConsentBanner } from "@repo/legal/cookie-consent";
 import { PostHogProvider } from "@repo/analytics/provider";

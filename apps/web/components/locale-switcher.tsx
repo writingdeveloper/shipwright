@@ -2,12 +2,12 @@
 
 import { type ChangeEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { type Locale, routing } from "@repo/i18n";
-import { usePathname, useRouter } from "@repo/i18n/navigation";
+import { type Locale, routing } from "../i18n/routing";
+import { usePathname, useRouter } from "../i18n/navigation";
 
 /**
  * Language switcher: changes the locale while staying on the current page.
- * `usePathname` (from @repo/i18n/navigation) is locale-stripped, and
+ * `usePathname` (from the app's `i18n/navigation`) is locale-stripped, and
  * `router.replace(pathname, { locale })` re-adds the chosen locale — so the user
  * lands on the same content in the new language. Renders nothing for a
  * single-locale app (graceful), mirroring how the other cards self-hide.

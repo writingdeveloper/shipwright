@@ -1,17 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
-import createMiddleware from "next-intl/middleware";
 import {
   buildContentSecurityPolicy,
   CONTENT_SECURITY_POLICY_HEADER,
   generateNonce,
   NONCE_HEADER,
 } from "@repo/config/csp";
-import { routing } from "@repo/i18n";
 import { analyticsConnectSrc, gaConnectSrc } from "@repo/analytics/config";
 import { sentryConnectSrc } from "@repo/observability/config";
 import { logger } from "@repo/observability/logger";
 import { createRateLimiter } from "@repo/security/ratelimit";
 
+import { applyI18n } from "./i18n/proxy";
 import { env } from "./env";
 
 /**
@@ -36,13 +35,6 @@ const authRateLimiter = createRateLimiter({
 
 /** Path prefix of the Better Auth route handlers. */
 const AUTH_PATH_PREFIX = "/api/auth";
-
-/**
- * next-intl locale routing (URL-prefix, `as-needed` — default locale unprefixed).
- * Constructed once at module scope; invoked inside `withCsp` so locale routing
- * and the nonce CSP compose on a single pass.
- */
-const intlMiddleware = createMiddleware(routing);
 
 /**
  * Best-effort client IP. Prefers the left-most `x-forwarded-for` hop (the
@@ -89,8 +81,8 @@ async function enforceAuthRateLimit(
 }
 
 /**
- * Run next-intl locale routing, then layer the per-request nonce CSP onto its
- * result.
+ * Run locale routing (the `applyI18n` seam over next-intl), then layer the
+ * per-request nonce CSP onto its result.
  *
  * next-intl owns the locale rewrite/redirect + the NEXT_LOCALE cookie. We inject
  * the nonce on the REQUEST headers (so Next nonces its own bootstrap scripts) and
@@ -121,7 +113,7 @@ function withCsp(request: NextRequest): NextResponse {
 
   const csp = buildContentSecurityPolicy({ nonce, isDev, connectSrc });
 
-  const intlResponse = intlMiddleware(request);
+  const intlResponse = applyI18n(request);
 
   // Locale redirect (e.g. a /en/* default-locale path normalised to /*, or a
   // NEXT_LOCALE cookie disagreeing with the path): the browser re-requests, so

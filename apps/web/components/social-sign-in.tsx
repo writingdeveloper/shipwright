@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale } from "next-intl";
 import { authClient } from "@repo/auth/client";
 import { enabledSocialProviders } from "@repo/auth/config";
-import { defaultLocale } from "@repo/i18n";
+import { defaultLocale } from "../i18n/routing";
 import { Button } from "@repo/ui/components/ui/button";
 
 const LABELS: Record<"github" | "google", string> = {

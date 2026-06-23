@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useLocale } from "next-intl";
-import { Link } from "@repo/i18n/navigation";
-import { defaultLocale } from "@repo/i18n";
+import { Link } from "../../../i18n/navigation";
+import { defaultLocale } from "../../../i18n/routing";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
 import {

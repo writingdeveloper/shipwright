@@ -56,8 +56,8 @@ test("sitemap.xml lists locale hreflang alternates", async ({ page }) => {
 
 test("locale-aware links keep the /ko prefix across pages", async ({ page }) => {
   await page.goto("/ko");
-  // The home CTA uses @repo/i18n/navigation's Link, so clicking it from /ko must
-  // stay in Korean (/ko/sign-in) — not drop to the unprefixed /sign-in.
+  // The home CTA uses the app's locale-aware Link (i18n/navigation), so clicking
+  // it from /ko must stay in Korean (/ko/sign-in) — not drop to /sign-in.
   await page.getByRole("link", { name: "로그인" }).click();
   await page.waitForURL("**/ko/sign-in");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");

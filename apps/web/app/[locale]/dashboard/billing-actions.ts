@@ -3,7 +3,7 @@
 import { redirect as nextRedirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { logger } from "@repo/observability/logger";
-import { redirect } from "@repo/i18n/navigation";
+import { redirect } from "../../../i18n/navigation";
 import { createCheckoutSession } from "@repo/payments";
 
 import { requireSession } from "../../../lib/auth-actions";

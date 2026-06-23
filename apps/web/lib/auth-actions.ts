@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { auth, type Session } from "@repo/auth/server";
-import { redirect } from "@repo/i18n/navigation";
+import { redirect } from "../i18n/navigation";
 
 /**
  * Shared auth gate for the dashboard's Server Actions (task / push / billing).

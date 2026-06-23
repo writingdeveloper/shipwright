@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { routing } from "@repo/i18n";
+import { routing } from "../i18n/routing";
 import { absoluteUrl, buildSitemap } from "@repo/seo";
 
 import { PUBLIC_ROUTES, SITE_URL } from "../lib/site";

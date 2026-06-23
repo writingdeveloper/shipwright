@@ -31,6 +31,11 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
+    // Explicit password floor so the policy is auditable in code, not hidden in a
+    // library default (Better Auth's default is also 8). A direct POST to
+    // /api/auth/sign-up/email bypasses the form's client-side minLength, so this
+    // server-side floor is the real enforcement point.
+    minPasswordLength: 8,
     // Dynamic: enforce verification ONLY when email can actually be sent, so the
     // keyless app/CI/e2e (no Resend) still signs in immediately, while a real
     // deployment with email gates sign-in on a verified address.

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * Graceful contract: with no NEXT_PUBLIC_*_CLIENT_ID set (the keyless default),

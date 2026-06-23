@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * GEO / launch-meta smoke. Account-free: serves llms.txt, an OG image, an

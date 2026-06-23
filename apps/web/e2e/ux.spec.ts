@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * a11y / UX guards for the public pages — account-free. Cover the launch-polish

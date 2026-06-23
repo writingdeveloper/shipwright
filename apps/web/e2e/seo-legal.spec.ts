@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * End-to-end proof for the @repo/seo + @repo/legal wiring, against the REAL

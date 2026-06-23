@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * PWA smoke: the manifest is served and installable-shaped, and the offline

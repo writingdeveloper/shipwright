@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * i18n e2e against the REAL built app (next-intl locale middleware composed with

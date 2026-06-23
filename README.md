@@ -102,6 +102,14 @@ Or scaffold a fresh project from this starter with the CLI:
 npx create-shipwright my-app
 ```
 
+Pick only the optional features you'll use — the rest stay in the scaffold (so it
+builds as-is) with exact removal steps in
+**[docs/REMOVING-FEATURES.md](./docs/REMOVING-FEATURES.md)**:
+
+```sh
+npx create-shipwright my-app --features payments,email
+```
+
 ### Scaffolding a PWA app
 
 `pnpm gen app` scaffolds an installable + offline PWA in one step:

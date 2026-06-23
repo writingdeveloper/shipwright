@@ -31,6 +31,33 @@ const CLI_NAME = "create-shipwright";
 const DEFAULT_REPO = "github:writingdeveloper/shipwright";
 const DEFAULT_REF = "main";
 
+/**
+ * Optional, removable features (each maps to a `@repo/<key>` package). CORE
+ * packages (ui, auth, db, env, config) are always included and not listed here.
+ *
+ * `--features` / the interactive multiselect choose which OPTIONAL ones you'll
+ * use; the rest are "dropped" and the CLI points at `docs/REMOVING-FEATURES.md`
+ * to strip them. The scaffold ALWAYS ships every feature (so it builds as-is) —
+ * nothing is auto-removed, because each integration already no-ops without its
+ * env keys and several share code that a blind delete would break.
+ */
+const OPTIONAL_FEATURES = [
+  { key: "analytics", title: "Analytics", hint: "PostHog + GA4" },
+  { key: "observability", title: "Observability", hint: "Sentry + logger" },
+  { key: "payments", title: "Payments", hint: "Stripe billing" },
+  { key: "email", title: "Email", hint: "Resend transactional email" },
+  { key: "security", title: "Rate limiting", hint: "Upstash / in-memory" },
+  { key: "seo", title: "SEO", hint: "metadata + sitemap + JSON-LD" },
+  { key: "legal", title: "Legal", hint: "cookie consent + policies" },
+  { key: "pwa", title: "PWA", hint: "manifest + service worker + push" },
+  { key: "storage", title: "File storage", hint: "S3-compatible uploads" },
+  { key: "i18n", title: "i18n", hint: "next-intl locale routing" },
+  { key: "api", title: "tRPC API", hint: "opt-in tRPC, alongside Server Actions" },
+] as const;
+
+/** Just the keys, widened to `string[]` so `.includes(arbitraryString)` type-checks. */
+const FEATURE_KEYS: readonly string[] = OPTIONAL_FEATURES.map((f) => f.key);
+
 type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
 interface Options {
@@ -45,6 +72,9 @@ interface Options {
   packageManager?: PackageManager;
   force: boolean;
   dryRun: boolean;
+  /** Optional features to KEEP ("all" or a subset). undefined ⇒ resolve later
+   *  (prompt when interactive, else keep all). */
+  features?: readonly string[] | "all";
 }
 
 const HELP = `
@@ -64,6 +94,9 @@ ${pc.bold("Options")}
   --no-git                Do not run ${pc.dim("git init")}
   --no-install            Do not install dependencies
   --force                 Allow scaffolding into a non-empty directory
+  --features <list|all>   Optional features you'll use ${pc.dim("(default: prompt / all)")}
+                          ${pc.dim(`comma-list of: ${FEATURE_KEYS.join(", ")}`)}
+                          ${pc.dim("dropped features stay in the scaffold; see docs/REMOVING-FEATURES.md")}
   --dry-run               Resolve and print the plan; download/write NOTHING
   -h, --help              Show this help
   -v, --version           Show the version
@@ -72,6 +105,7 @@ ${pc.bold("Examples")}
   npx create-shipwright my-app
   npx create-shipwright my-app --ref v0.2.0 --pm npm
   npx create-shipwright my-app --no-install --no-git
+  npx create-shipwright my-app --features payments,email
   npx create-shipwright my-app --template ./local/checkout --dry-run
 `;
 
@@ -146,6 +180,21 @@ function parseArgs(argv: string[]): {
           return { options, showHelp, showVersion, error: `--pm must be one of pnpm|npm|yarn|bun (got "${value ?? ""}")` };
         }
         options.packageManager = value;
+        break;
+      }
+      case "--features": {
+        const value = argv[++i] ?? "";
+        if (!value) return { options, showHelp, showVersion, error: "--features needs a value (a comma-list or 'all')" };
+        if (value === "all") {
+          options.features = "all";
+        } else {
+          const keys = value.split(",").map((s) => s.trim()).filter(Boolean);
+          const unknown = keys.filter((k) => !FEATURE_KEYS.includes(k));
+          if (unknown.length) {
+            return { options, showHelp, showVersion, error: `--features: unknown feature(s) ${unknown.join(", ")}. Valid: ${FEATURE_KEYS.join(", ")}` };
+          }
+          options.features = keys;
+        }
         break;
       }
       default:
@@ -273,6 +322,35 @@ async function main(): Promise<number> {
     }
   }
 
+  // 1b. Resolve which OPTIONAL features to keep. Interactive + no flag → multiselect
+  // (all preselected; unselect to drop). Non-interactive + no flag → keep all
+  // (today's behavior, zero regression). Dropped features are NOT removed from the
+  // scaffold — the CLI just surfaces their removal guide.
+  let kept: Set<string>;
+  if (Array.isArray(options.features)) {
+    kept = new Set(options.features);
+  } else if (options.features === undefined && process.stdout.isTTY && !options.dryRun) {
+    const answer = await prompts({
+      type: "multiselect",
+      name: "features",
+      message: "Optional features to include",
+      instructions: false,
+      hint: "space toggles · enter confirms · all preselected",
+      choices: OPTIONAL_FEATURES.map((f) => ({
+        title: `${f.title} ${pc.dim(`— ${f.hint}`)}`,
+        value: f.key,
+        selected: true,
+      })),
+    });
+    kept = Array.isArray(answer.features)
+      ? new Set(answer.features)
+      : new Set(FEATURE_KEYS);
+  } else {
+    // "all", or the non-interactive default.
+    kept = new Set(FEATURE_KEYS);
+  }
+  const dropped = OPTIONAL_FEATURES.filter((f) => !kept.has(f.key));
+
   const targetDir = path.resolve(process.cwd(), dir);
   const projectName = path.basename(targetDir);
   const localTemplate = resolveLocalTemplate(options.template);
@@ -300,6 +378,23 @@ async function main(): Promise<number> {
   console.log(`  ${pc.dim("git init  ")} ${options.git ? pc.green("yes") : pc.dim("no")}`);
   console.log(`  ${pc.dim("install   ")} ${options.install ? `${pc.green("yes")} ${pc.dim(`(${pm})`)}` : pc.dim("no")}`);
   if (!empty) console.log(`  ${pc.dim("force     ")} ${pc.yellow("yes (target not empty)")}`);
+  console.log(
+    `  ${pc.dim("features  ")} ${
+      dropped.length === 0
+        ? `${pc.green("all")} ${pc.dim(`(${FEATURE_KEYS.length})`)}`
+        : `${[...kept].join(", ") || pc.dim("core only")} ${pc.dim(`· dropping ${dropped.length}`)}`
+    }`,
+  );
+
+  if (dropped.length) {
+    console.log();
+    console.log(pc.bold("Dropped features"));
+    console.log(pc.dim("  The scaffold still includes every feature, so it builds as-is. Remove the"));
+    console.log(`  ${pc.dim("ones below by following")} ${pc.cyan("docs/REMOVING-FEATURES.md")}${pc.dim(":")}`);
+    for (const f of dropped) {
+      console.log(`    ${pc.yellow("-")} ${f.title} ${pc.dim(`(@repo/${f.key} — ${f.hint})`)}`);
+    }
+  }
 
   if (options.dryRun) {
     console.log(`\n${pc.cyan("dry-run")} — resolved the plan above; nothing was downloaded or written.`);

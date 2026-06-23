@@ -51,6 +51,7 @@ swappable preset.
 ```text
 apps/
   web/                 # reference app (the dogfood target): Tasks MVP
+  admin/               # second app — dogfoods `pnpm gen app`, shares @repo/auth/db/ui
 packages/
   ui/ auth/ db/ env/   # design system · Better Auth · Drizzle/libSQL · validated env
   config/              # @repo/config — security headers + nonce CSP

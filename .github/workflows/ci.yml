@@ -11,9 +11,16 @@ concurrency:
 
 jobs:
   verify:
-    name: Lint · Types · Build · Test · Audit
+    name: Lint · Types · Build · Test · Audit (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    # Matrix across the supported Node versions. 20 is intentionally EXCLUDED:
+    # pnpm 11.3 requires Node >= 22.13, and parts of the toolchain use the
+    # `node:sqlite` builtin (Node 22.5+), so 20 cannot run the install at all.
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     # No real secrets in CI — schema-valid placeholders so @repo/env validation
     # and the eager clients (libSQL, Better Auth) construct cleanly at build and
     # test time. NOTE: SKIP_ENV_VALIDATION is deliberately NOT used: it skips Zod
@@ -36,7 +43,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: pnpm
 
       - name: Install dependencies
@@ -60,5 +67,7 @@ jobs:
       - name: E2E tests (Playwright)
         run: pnpm test:e2e
 
+      # Moderate is the right floor for a starter others clone (high alone lets
+      # moderate advisories through). pnpm-workspace.yaml pins known advisories.
       - name: Audit dependencies
-        run: pnpm audit --audit-level high
+        run: pnpm audit --audit-level moderate

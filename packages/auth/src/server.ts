@@ -1,4 +1,4 @@
-import { db, schema } from "@repo/db";
+import { db, eq, schema } from "@repo/db";
 import {
   isEmailConfigured,
   sendPasswordResetEmail,
@@ -8,6 +8,7 @@ import {
 import { env } from "@repo/env";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin } from "better-auth/plugins";
 
 /**
  * Server-side Better Auth instance.
@@ -73,6 +74,9 @@ export const auth = betterAuth({
         }
       : {}),
   },
+  // RBAC via the vetted admin plugin (role/banned columns live in @repo/db).
+  // Default adminRoles: ["admin"]. No hand-rolled authorization.
+  plugins: [admin()],
   databaseHooks: {
     user: {
       create: {
@@ -84,6 +88,22 @@ export const auth = betterAuth({
         // unexpected error can never reject the sign-up request, and we do not
         // `await` it so email latency never slows the response.
         after: async (user) => {
+          // Bootstrap: promote allow-listed emails (ADMIN_EMAILS) to role
+          // "admin" at creation so the first admin exists with a real role (the
+          // admin plugin authorizes its API on `role`). Awaited — a fast local
+          // UPDATE — so the role is set before the account is useful. Empty
+          // ADMIN_EMAILS → no-op.
+          const adminEmails = (env.ADMIN_EMAILS ?? "")
+            .split(",")
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+          if (adminEmails.includes(user.email.toLowerCase())) {
+            await db
+              .update(schema.user)
+              .set({ role: "admin" })
+              .where(eq(schema.user.id, user.id));
+          }
+          // Welcome email stays best-effort and must never break/block sign-up.
           void sendWelcomeEmail({
             to: user.email,
             name: user.name,

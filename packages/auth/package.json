@@ -27,7 +27,8 @@
     "@repo/db": "workspace:*",
     "@repo/email": "workspace:*",
     "@repo/env": "workspace:*",
-    "better-auth": "^1.6.19"
+    "better-auth": "^1.6.19",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "react": "^19.2.0"

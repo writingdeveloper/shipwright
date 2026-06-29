@@ -35,6 +35,11 @@ export const env = createEnv({
       .min(32, "BETTER_AUTH_SECRET must be at least 32 characters."),
     // Canonical origin Better Auth issues/validates callbacks against.
     BETTER_AUTH_URL: z.string().url(),
+    // Comma-separated emails promoted to role "admin" on sign-up — the bootstrap
+    // for the first admin (owned by @repo/auth's create-hook). OPTIONAL: empty in
+    // keyless/CI/dev means no env-seeded admins. Validated as a plain string;
+    // parsing/splitting happens at the use site.
+    ADMIN_EMAILS: z.string().optional(),
     // libSQL connection string. Defaults to a local file so a fresh clone runs
     // with zero config; override for Turso/remote libSQL.
     DATABASE_URL: z.string().min(1).default("file:local.db"),
@@ -166,6 +171,7 @@ export const env = createEnv({
   runtimeEnv: {
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    ADMIN_EMAILS: process.env.ADMIN_EMAILS,
     DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
     RESEND_API_KEY: process.env.RESEND_API_KEY,

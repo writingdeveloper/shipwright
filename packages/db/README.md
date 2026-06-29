@@ -10,6 +10,20 @@ whole package to **Postgres**.
 > keep DB access server-only, scope every mutation by owner). This file is about
 > the **provider**: where the bytes live and how to change that.
 
+## Owner-scoping (enforced)
+
+Owner-scoped tables (`task`, `uploadedFile`, `pushSubscription`, `subscription`)
+must be queried with the helpers from `@repo/db`:
+
+- `ownedBy(table, userId)` — list reads (`WHERE user_id = ?`)
+- `ownedRow(table, userId, id)` — single-row read/update/delete (`WHERE id = ? AND user_id = ?`)
+- `acrossAllOwners()` — a deliberate, auditable admin span (no role check yet)
+
+Three layers keep this honest: the helpers make the right predicate the easy one,
+the `no-unscoped-owner-table` ESLint rule fails the build on an unscoped owner-table
+query, and `test/owner-scope.test.ts` (+ its pg mirror) proves cross-user isolation
+for every table in `OWNER_TABLES`.
+
 ## Two libSQL targets, one dialect
 
 libSQL speaks SQLite whether the database is a local file or a hosted Turso

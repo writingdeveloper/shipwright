@@ -12,7 +12,8 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "promote-admin": "tsx scripts/promote-admin.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -21,6 +22,7 @@
     "@types/react": "19.2.2",
     "eslint": "^9.39.1",
     "react": "^19.2.0",
+    "tsx": "^4.22.4",
     "typescript": "5.9.2"
   },
   "dependencies": {

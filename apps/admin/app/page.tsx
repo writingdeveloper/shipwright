@@ -1,36 +1,41 @@
-import { Button } from "@repo/ui/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/ui/card";
+import { acrossAllOwners, count, db, subscription, task } from "@repo/db";
 
-export default function Home() {
+import { requireAdmin } from "../lib/admin-actions";
+
+/**
+ * Admin dashboard (root, gated). `requireAdmin()` runs at the data layer before
+ * any read. The cross-owner counts are the first real consumer of the
+ * `acrossAllOwners()` seam: a deliberate, role-gated read across ALL owners
+ * (contrast the per-user `ownedBy`/`ownedRow` the user app uses).
+ */
+export default async function AdminDashboard() {
+  await requireAdmin();
+
+  const [taskRows, subRows] = await Promise.all([
+    db.select({ value: count() }).from(task).where(acrossAllOwners()),
+    db.select({ value: count() }).from(subscription).where(acrossAllOwners()),
+  ]);
+
   return (
-    <main className="bg-background flex min-h-svh items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Admin</CardTitle>
-          <CardDescription>
-            Scaffolded with <code className="font-mono text-xs">pnpm gen app</code>{" "}
-            and wired to the shared <code className="font-mono text-xs">@repo/ui</code>{" "}
-            design system.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Edit <code className="font-mono text-xs">app/page.tsx</code> to start
-            building. This page already renders shared components, so the design
-            tokens and Tailwind setup are confirmed working.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button>Get started</Button>
-        </CardFooter>
-      </Card>
+    <main id="main" className="bg-background min-h-svh p-6">
+      <h1 className="text-2xl font-semibold">Admin dashboard</h1>
+      <p className="text-muted-foreground mt-1 text-sm">
+        Cross-owner totals (role-gated via acrossAllOwners).
+      </p>
+      <dl className="mt-6 grid max-w-md grid-cols-2 gap-4">
+        <div>
+          <dt className="text-muted-foreground text-sm">Total tasks</dt>
+          <dd data-testid="task-count" className="text-3xl font-bold">
+            {taskRows[0]?.value ?? 0}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground text-sm">Total subscriptions</dt>
+          <dd data-testid="sub-count" className="text-3xl font-bold">
+            {subRows[0]?.value ?? 0}
+          </dd>
+        </div>
+      </dl>
     </main>
   );
 }

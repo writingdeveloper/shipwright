@@ -51,6 +51,6 @@
     "@types/node": "^22.15.3",
     "@types/prompts": "^2.4.9",
     "eslint": "^9.39.1",
-    "typescript": "5.9.2"
+    "typescript": "6.0.3"
   }
 }

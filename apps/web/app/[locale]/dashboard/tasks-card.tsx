@@ -1,4 +1,4 @@
-import { db, desc, eq, task } from "@repo/db";
+import { db, desc, ownedBy, task } from "@repo/db";
 import {
   Card,
   CardContent,
@@ -18,7 +18,7 @@ export async function TasksCard({ userId }: { userId: string }) {
   const tasks = await db
     .select()
     .from(task)
-    .where(eq(task.userId, userId))
+    .where(ownedBy(task, userId))
     .orderBy(desc(task.createdAt));
 
   const completedCount = tasks.filter((t) => t.completed).length;

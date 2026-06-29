@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, db, desc, eq, uploadedFile } from "@repo/db";
+import { db, desc, ownedBy, ownedRow, uploadedFile } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 import {
   createPresignedDownloadUrl,
@@ -123,7 +123,7 @@ export async function listFiles(): Promise<readonly FileListItem[]> {
   const rows = await db
     .select()
     .from(uploadedFile)
-    .where(eq(uploadedFile.userId, userId))
+    .where(ownedBy(uploadedFile, userId))
     .orderBy(desc(uploadedFile.createdAt));
   return Promise.all(
     rows.map(async (row) => ({
@@ -147,7 +147,7 @@ export async function deleteFile(formData: FormData): Promise<void> {
   const [row] = await db
     .select({ key: uploadedFile.key })
     .from(uploadedFile)
-    .where(and(eq(uploadedFile.id, id), eq(uploadedFile.userId, userId)));
+    .where(ownedRow(uploadedFile, userId, id));
   if (!row) return;
   try {
     if (isStorageConfigured()) await deleteObject(row.key);
@@ -155,8 +155,6 @@ export async function deleteFile(formData: FormData): Promise<void> {
     // A dangling object is less bad than an undeletable row — log + continue.
     logger.error("deleteFile: failed to delete object", { error, userId });
   }
-  await db
-    .delete(uploadedFile)
-    .where(and(eq(uploadedFile.id, id), eq(uploadedFile.userId, userId)));
+  await db.delete(uploadedFile).where(ownedRow(uploadedFile, userId, id));
   revalidatePath("/[locale]/dashboard", "layout");
 }

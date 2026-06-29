@@ -1,4 +1,4 @@
-import { db, schema, and, eq, inArray } from "@repo/db";
+import { db, schema, and, eq, inArray, ownedBy } from "@repo/db";
 
 import { deliverPush, type PushPayload } from "./delivery";
 
@@ -50,7 +50,7 @@ export async function deleteSubscription(
     .delete(schema.pushSubscription)
     .where(
       and(
-        eq(schema.pushSubscription.userId, userId),
+        ownedBy(schema.pushSubscription, userId),
         eq(schema.pushSubscription.endpoint, endpoint),
       ),
     );
@@ -61,7 +61,7 @@ export async function listSubscriptions(userId: string) {
   return db
     .select()
     .from(schema.pushSubscription)
-    .where(eq(schema.pushSubscription.userId, userId));
+    .where(ownedBy(schema.pushSubscription, userId));
 }
 
 /**
@@ -87,7 +87,12 @@ export async function sendPushToUser(
   if (result.deadEndpoints.length > 0) {
     await db
       .delete(schema.pushSubscription)
-      .where(inArray(schema.pushSubscription.endpoint, result.deadEndpoints));
+      .where(
+        and(
+          ownedBy(schema.pushSubscription, userId),
+          inArray(schema.pushSubscription.endpoint, result.deadEndpoints),
+        ),
+      );
   }
 
   return {

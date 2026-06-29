@@ -1,4 +1,4 @@
-import { db, desc, eq, task } from "@repo/db";
+import { db, desc, ownedBy, task } from "@repo/db";
 
 import { protectedProcedure, router } from "../trpc";
 
@@ -13,7 +13,7 @@ export const taskRouter = router({
     return db
       .select()
       .from(task)
-      .where(eq(task.userId, ctx.session.user.id))
+      .where(ownedBy(task, ctx.session.user.id))
       .orderBy(desc(task.createdAt));
   }),
 });

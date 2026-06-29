@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, db, eq, sql, task } from "@repo/db";
+import { db, ownedRow, sql, task } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 
 import { requireUserId } from "../../../lib/auth-actions";
@@ -68,7 +68,7 @@ export async function toggleTask(formData: FormData): Promise<void> {
   await db
     .update(task)
     .set({ completed: sql`NOT ${task.completed}` })
-    .where(and(eq(task.id, id), eq(task.userId, userId)));
+    .where(ownedRow(task, userId, id));
 
   revalidatePath("/[locale]/dashboard", "layout");
 }
@@ -83,7 +83,7 @@ export async function deleteTask(formData: FormData): Promise<void> {
 
   // Same ownership scoping as toggle: delete only when the row belongs to the
   // signed-in user.
-  await db.delete(task).where(and(eq(task.id, id), eq(task.userId, userId)));
+  await db.delete(task).where(ownedRow(task, userId, id));
 
   revalidatePath("/[locale]/dashboard", "layout");
 }

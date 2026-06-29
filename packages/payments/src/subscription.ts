@@ -1,4 +1,4 @@
-import { db, eq, subscription as subscriptionTable } from "@repo/db";
+import { db, ownedBy, subscription as subscriptionTable } from "@repo/db";
 
 /**
  * @repo/payments — owner-scoped subscription reads.
@@ -27,7 +27,7 @@ export async function getSubscription(
   const [row] = await db
     .select()
     .from(subscriptionTable)
-    .where(eq(subscriptionTable.userId, userId))
+    .where(ownedBy(subscriptionTable, userId))
     .limit(1);
 
   return row ?? null;

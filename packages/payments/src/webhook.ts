@@ -1,6 +1,7 @@
 import {
   db,
   eq,
+  ownedBy,
   processedStripeEvent,
   subscription as subscriptionTable,
 } from "@repo/db";
@@ -174,7 +175,7 @@ async function markSubscriptionCanceled(
       plan: "free",
       currentPeriodEnd: periodEndMs(sub),
     })
-    .where(eq(subscriptionTable.userId, userId));
+    .where(ownedBy(subscriptionTable, userId));
 }
 
 /**

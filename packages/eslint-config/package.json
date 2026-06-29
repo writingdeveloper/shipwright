@@ -8,6 +8,9 @@
     "./next-js": "./next.js",
     "./react-internal": "./react-internal.js"
   },
+  "scripts": {
+    "test": "node --test \"rules/*.test.js\""
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@next/eslint-plugin-next": "^16.2.0",

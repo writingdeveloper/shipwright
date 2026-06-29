@@ -136,7 +136,7 @@ describe("handleWebhookEvent idempotency (real libSQL)", () => {
     const rows = await dbMod.db
       .select()
       .from(dbMod.schema.subscription)
-      .where(dbMod.eq(dbMod.schema.subscription.userId, USER_ID));
+      .where(dbMod.ownedBy(dbMod.schema.subscription, USER_ID));
     expect(rows.length).toBe(1);
   });
 

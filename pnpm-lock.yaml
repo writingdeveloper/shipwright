@@ -42,12 +42,21 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@repo/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@repo/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@repo/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
+      '@repo/security':
+        specifier: workspace:*
+        version: link:../../packages/security
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui

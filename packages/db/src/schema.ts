@@ -18,6 +18,13 @@ export const user = sqliteTable("user", {
     .default(false)
     .notNull(),
   image: text("image"),
+  // Better Auth admin plugin fields. `role` drives RBAC (default non-admin);
+  // banned/banReason/banExpires back the SP2 ban flow. Column names match the
+  // plugin's defaults so the Drizzle adapter maps them with no extra config.
+  role: text("role").default("user"),
+  banned: integer("banned", { mode: "boolean" }),
+  banReason: text("ban_reason"),
+  banExpires: integer("ban_expires", { mode: "timestamp_ms" }),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),
@@ -41,6 +48,9 @@ export const session = sqliteTable(
       .notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
+    // Set by the admin plugin during impersonation (SP2); present now for schema
+    // completeness so there is no second migration.
+    impersonatedBy: text("impersonated_by"),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),

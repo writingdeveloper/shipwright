@@ -64,8 +64,11 @@ jobs:
       - name: Install Playwright browser
         run: pnpm --filter web exec playwright install --with-deps chromium
 
-      - name: E2E tests (Playwright)
+      - name: E2E tests — web (Playwright)
         run: pnpm test:e2e
+
+      - name: E2E tests — admin (Playwright)
+        run: pnpm --filter admin test:e2e
 
       # Moderate is the right floor for a starter others clone (high alone lets
       # moderate advisories through). pnpm-workspace.yaml pins known advisories.

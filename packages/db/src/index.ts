@@ -7,3 +7,10 @@ export * from "./schema";
  * directly. Add to this list as new operators are needed.
  */
 export { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+
+/**
+ * Owner-scoping helpers + the owner-table registry. Prefer these over
+ * hand-written `and(eq(id), eq(userId))`; the `no-unscoped-owner-table` lint
+ * rule requires one of them on every owner-table query.
+ */
+export { OWNER_TABLES, ownedBy, ownedRow, acrossAllOwners } from "./owner-scope";

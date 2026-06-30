@@ -15,6 +15,8 @@ export type BillingResult =
   | { ok: false; reason: "not_configured" | "no_subscription" | "stripe_error" };
 
 const DAY_SECONDS = 60 * 60 * 24;
+/** Upper bound on a comp horizon (≈10 years) so a crafted `days` can't overflow Date. */
+const MAX_COMP_DAYS = 3650;
 
 /**
  * Refund (in full) the latest payment on a user's Stripe subscription. No-op when
@@ -140,18 +142,28 @@ export async function grantProComp(
   if (!userId || !Number.isFinite(days) || days <= 0) {
     return { ok: false, reason: "stripe_error" };
   }
+  // Cap the horizon so an absurd `days` (e.g. from a crafted POST) can't overflow
+  // JS's max Date and persist a NaN/invalid period.
+  const cappedDays = Math.min(Math.floor(days), MAX_COMP_DAYS);
   const currentPeriodEnd = new Date(
-    Date.now() + Math.floor(days) * DAY_SECONDS * 1000,
+    Date.now() + cappedDays * DAY_SECONDS * 1000,
   );
-  await db
-    .insert(subscriptionTable)
-    .values({ userId, status: "active", plan: "comp", currentPeriodEnd })
-    .onConflictDoUpdate({
-      target: subscriptionTable.userId,
-      // Deliberately does NOT touch stripeSubscriptionId — preserve any real id.
-      set: { status: "active", plan: "comp", currentPeriodEnd },
-    });
-  return { ok: true };
+  try {
+    await db
+      .insert(subscriptionTable)
+      .values({ userId, status: "active", plan: "comp", currentPeriodEnd })
+      .onConflictDoUpdate({
+        target: subscriptionTable.userId,
+        // Deliberately does NOT touch stripeSubscriptionId — preserve any real id.
+        set: { status: "active", plan: "comp", currentPeriodEnd },
+      });
+    return { ok: true };
+  } catch (error) {
+    // e.g. a stale/forged userId with no `user` row → FK violation. Report it as
+    // a failure (which the caller audits) rather than an unaudited 500.
+    logger.error("grantProComp failed", { error, userId });
+    return { ok: false, reason: "stripe_error" };
+  }
 }
 
 /**
@@ -161,14 +173,19 @@ export async function grantProComp(
  */
 export async function revokeProComp(userId: string): Promise<BillingResult> {
   if (!userId) return { ok: false, reason: "stripe_error" };
-  await db
-    .update(subscriptionTable)
-    .set({ status: "canceled" })
-    .where(
-      and(
-        ownedBy(subscriptionTable, userId),
-        isNull(subscriptionTable.stripeSubscriptionId),
-      ),
-    );
-  return { ok: true };
+  try {
+    await db
+      .update(subscriptionTable)
+      .set({ status: "canceled" })
+      .where(
+        and(
+          ownedBy(subscriptionTable, userId),
+          isNull(subscriptionTable.stripeSubscriptionId),
+        ),
+      );
+    return { ok: true };
+  } catch (error) {
+    logger.error("revokeProComp failed", { error, userId });
+    return { ok: false, reason: "stripe_error" };
+  }
 }

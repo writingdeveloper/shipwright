@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { acrossAllOwners, count, db, subscription, task } from "@repo/db";
 
 import { requireAdmin } from "../lib/admin-actions";
@@ -22,6 +23,14 @@ export default async function AdminDashboard() {
       <p className="text-muted-foreground mt-1 text-sm">
         Cross-owner totals (role-gated via acrossAllOwners).
       </p>
+      <nav className="mt-4 flex gap-4 text-sm">
+        <Link href="/users" className="underline">
+          Manage users
+        </Link>
+        <Link href="/audit" className="underline">
+          Audit log
+        </Link>
+      </nav>
       <dl className="mt-6 grid max-w-md grid-cols-2 gap-4">
         <div>
           <dt className="text-muted-foreground text-sm">Total tasks</dt>

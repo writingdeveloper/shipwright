@@ -15,9 +15,13 @@ vi.mock("../src/client", () => ({
 }));
 
 describe("refund/extend (mocked Stripe)", () => {
-  it("refundLatestPayment refunds the latest payment_intent", async () => {
+  it("refundLatestPayment refunds the payment_intent from invoice.payments (dahlia shape)", async () => {
+    // The REAL Stripe 2026-05-27 shape: payment intent lives on
+    // invoice.payments.data[].payment.payment_intent.
     subsRetrieve.mockResolvedValueOnce({
-      latest_invoice: { payment_intent: { id: "pi_123" } },
+      latest_invoice: {
+        payments: { data: [{ payment: { payment_intent: "pi_123" } }] },
+      },
     });
     const { refundLatestPayment } = await import("../src/admin");
 
@@ -25,8 +29,31 @@ describe("refund/extend (mocked Stripe)", () => {
     expect(refundsCreate).toHaveBeenCalledWith({ payment_intent: "pi_123" });
   });
 
-  it("extendSubscription pushes trial_end out by N days, no proration", async () => {
-    subsRetrieve.mockResolvedValueOnce({ current_period_end: 1000 });
+  it("refundLatestPayment falls back to the charge when there is no payment_intent", async () => {
+    subsRetrieve.mockResolvedValueOnce({
+      latest_invoice: { payments: { data: [{ payment: { charge: "ch_9" } }] } },
+    });
+    const { refundLatestPayment } = await import("../src/admin");
+
+    expect(await refundLatestPayment("sub_1")).toEqual({ ok: true });
+    expect(refundsCreate).toHaveBeenCalledWith({ charge: "ch_9" });
+  });
+
+  it("refundLatestPayment still handles the legacy top-level payment_intent", async () => {
+    subsRetrieve.mockResolvedValueOnce({
+      latest_invoice: { payment_intent: { id: "pi_legacy" } },
+    });
+    const { refundLatestPayment } = await import("../src/admin");
+
+    expect(await refundLatestPayment("sub_1")).toEqual({ ok: true });
+    expect(refundsCreate).toHaveBeenCalledWith({ payment_intent: "pi_legacy" });
+  });
+
+  it("extendSubscription pushes trial_end out by N days, no proration (period on items[0])", async () => {
+    // dahlia: current_period_end lives on the subscription ITEM, not top-level.
+    subsRetrieve.mockResolvedValueOnce({
+      items: { data: [{ current_period_end: 1000 }] },
+    });
     const { extendSubscription } = await import("../src/admin");
 
     expect(await extendSubscription("sub_1", 7)).toEqual({ ok: true });
@@ -36,7 +63,7 @@ describe("refund/extend (mocked Stripe)", () => {
     });
   });
 
-  it("refund returns no_subscription when there is no payment intent", async () => {
+  it("refund returns no_subscription when there is nothing refundable", async () => {
     subsRetrieve.mockResolvedValueOnce({ latest_invoice: null });
     const { refundLatestPayment } = await import("../src/admin");
 

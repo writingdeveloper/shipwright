@@ -29,26 +29,58 @@ export async function refundLatestPayment(
   if (!stripe) return { ok: false, reason: "not_configured" };
   try {
     const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
-      expand: ["latest_invoice.payment_intent"],
+      // Stripe API 2026-05-27 ('dahlia', the SDK's pinned version) moved the
+      // payment intent / charge from a top-level `invoice.payment_intent` onto
+      // `invoice.payments.data[].payment`. Expand that list.
+      expand: ["latest_invoice.payments"],
     });
     // Focused cast (matches the webhook's periodEndMs pattern) to avoid wrestling
-    // the SDK's deep expand types.
+    // the SDK's deep, version-specific expand types.
     const rec = sub as unknown as {
       latest_invoice?:
-        | { payment_intent?: { id?: string } | string | null }
+        | {
+            payments?: {
+              data?: Array<{
+                payment?: {
+                  payment_intent?: { id?: string } | string | null;
+                  charge?: { id?: string } | string | null;
+                };
+              }>;
+            };
+            // Legacy (pre-dahlia) shape, kept as a fallback.
+            payment_intent?: { id?: string } | string | null;
+          }
         | string
         | null;
     };
-    const inv = rec.latest_invoice;
-    const pi = inv && typeof inv === "object" ? inv.payment_intent : null;
-    const paymentIntentId = pi
-      ? typeof pi === "string"
-        ? pi
-        : (pi.id ?? null)
-      : null;
-    if (!paymentIntentId) return { ok: false, reason: "no_subscription" };
-    await stripe.refunds.create({ payment_intent: paymentIntentId });
-    return { ok: true };
+    const idOf = (
+      ref: { id?: string } | string | null | undefined,
+    ): string | null =>
+      !ref ? null : typeof ref === "string" ? ref : (ref.id ?? null);
+
+    const invoice =
+      rec.latest_invoice && typeof rec.latest_invoice === "object"
+        ? rec.latest_invoice
+        : null;
+
+    let paymentIntentId: string | null = null;
+    let chargeId: string | null = null;
+    for (const p of invoice?.payments?.data ?? []) {
+      paymentIntentId ??= idOf(p.payment?.payment_intent);
+      chargeId ??= idOf(p.payment?.charge);
+    }
+    // Pre-dahlia fallback.
+    paymentIntentId ??= idOf(invoice?.payment_intent);
+
+    if (paymentIntentId) {
+      await stripe.refunds.create({ payment_intent: paymentIntentId });
+      return { ok: true };
+    }
+    if (chargeId) {
+      await stripe.refunds.create({ charge: chargeId });
+      return { ok: true };
+    }
+    return { ok: false, reason: "no_subscription" };
   } catch (error) {
     logger.error("refundLatestPayment failed", { error, stripeSubscriptionId });
     return { ok: false, reason: "stripe_error" };
@@ -94,9 +126,12 @@ export async function extendSubscription(
 
 /**
  * LOCAL Pro comp: upsert the user's subscription mirror to an active "comp" for
- * `days`, making `isPro` true. No Stripe call; `stripeSubscriptionId` stays null
- * (it is a manual override). A later real Stripe subscription reconciles via the
- * webhook upsert.
+ * `days`, making `isPro` true. No Stripe call. A NEW row has a null
+ * `stripeSubscriptionId`; on conflict the existing `stripeSubscriptionId` is
+ * PRESERVED (NOT nulled) — so comping a real paying user keeps their Stripe id,
+ * which (a) keeps refund/extend available and (b) keeps `revokeProComp`'s
+ * `isNull` guard correctly skipping them, so a comp-revoke can never cancel a
+ * paying customer's row. A later Stripe webhook reconciles the mirror.
  */
 export async function grantProComp(
   userId: string,
@@ -113,12 +148,8 @@ export async function grantProComp(
     .values({ userId, status: "active", plan: "comp", currentPeriodEnd })
     .onConflictDoUpdate({
       target: subscriptionTable.userId,
-      set: {
-        status: "active",
-        plan: "comp",
-        currentPeriodEnd,
-        stripeSubscriptionId: null,
-      },
+      // Deliberately does NOT touch stripeSubscriptionId — preserve any real id.
+      set: { status: "active", plan: "comp", currentPeriodEnd },
     });
   return { ok: true };
 }

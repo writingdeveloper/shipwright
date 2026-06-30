@@ -56,6 +56,31 @@ describe("grant/revoke Pro comp (local, keyless)", () => {
     await admin.revokeProComp("u-real"); // guarded: only local comps (no stripe id)
     expect(await isPro("u-real")).toBe(true); // untouched
   });
+
+  it("comping a real paying user preserves their Stripe id, so revoke can't cancel them", async () => {
+    // u-pay has a real Stripe subscription.
+    await dbMod.db.insert(dbMod.schema.user).values({
+      id: "u-pay",
+      email: "pay@example.com",
+      name: "Pay",
+    });
+    await dbMod.db.insert(dbMod.schema.subscription).values({
+      userId: "u-pay",
+      stripeSubscriptionId: "sub_pay_1",
+      status: "active",
+      plan: "pro",
+      currentPeriodEnd: new Date(Date.now() + 30 * 86400 * 1000),
+    });
+
+    // Grant a comp on top — must NOT null the real Stripe id (regression guard).
+    expect(await admin.grantProComp("u-pay", 30)).toEqual({ ok: true });
+    const after = await getSubscription("u-pay");
+    expect(after?.stripeSubscriptionId).toBe("sub_pay_1");
+
+    // Revoke must then skip them (isNull guard false) — the paying row survives.
+    await admin.revokeProComp("u-pay");
+    expect(await isPro("u-pay")).toBe(true);
+  });
 });
 
 describe("refund/extend (no Stripe key → not_configured)", () => {

@@ -268,6 +268,23 @@ export const subscription = pgTable(
   (table) => [index("subscription_userId_idx").on(table.userId)],
 );
 
+/** Admin audit log — pg mirror of schema.ts (non-owner, no FK; audit integrity). */
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: text("actor_user_id").notNull(),
+    action: text("action").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    metadata: text("metadata"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("auditLog_createdAt_idx").on(table.createdAt)],
+);
+
 export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -336,4 +353,5 @@ export const schema = {
   pushSubscription,
   processedStripeEvent,
   subscription,
+  auditLog,
 };

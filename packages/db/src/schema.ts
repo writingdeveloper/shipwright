@@ -261,6 +261,32 @@ export const subscription = sqliteTable(
   (table) => [index("subscription_userId_idx").on(table.userId)],
 );
 
+/**
+ * Admin audit log (owned by the admin app). One row per sensitive admin action
+ * (role change / ban / unban / delete). INFRASTRUCTURE, not user-owned data — so
+ * it is NOT in `OWNER_TABLES` and reads are gated by `requireAdmin`, not
+ * owner-scoped. `actorUserId`/`targetId` are plain text with NO FK on purpose:
+ * the record of an action (especially a delete) must survive even after the
+ * actor or target user row is gone — audit integrity.
+ */
+export const auditLog = sqliteTable(
+  "audit_log",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    actorUserId: text("actor_user_id").notNull(),
+    action: text("action").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    metadata: text("metadata"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("auditLog_createdAt_idx").on(table.createdAt)],
+);
+
 export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -329,4 +355,5 @@ export const schema = {
   pushSubscription,
   processedStripeEvent,
   subscription,
+  auditLog,
 };

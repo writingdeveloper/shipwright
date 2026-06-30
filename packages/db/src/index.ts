@@ -14,3 +14,6 @@ export { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
  * rule requires one of them on every owner-table query.
  */
 export { OWNER_TABLES, ownedBy, ownedRow, acrossAllOwners } from "./owner-scope";
+
+/** Admin audit log helper (the `auditLog` table is exported via `./schema`). */
+export { recordAuditLog, type AuditEntry } from "./audit";

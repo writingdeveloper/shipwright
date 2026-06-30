@@ -17,6 +17,7 @@
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/observability": "workspace:*",
+    "@repo/payments": "workspace:*",
     "@repo/security": "workspace:*",
     "@repo/ui": "workspace:*",
     "next": "16.2.9",

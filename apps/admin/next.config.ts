@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     "@repo/db",
     "@repo/env",
     "@repo/observability",
+    "@repo/payments",
     "@repo/security",
     "@repo/ui",
   ],

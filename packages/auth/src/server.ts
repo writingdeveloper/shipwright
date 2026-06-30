@@ -93,6 +93,13 @@ export const auth = betterAuth({
           // admin plugin authorizes its API on `role`). Awaited — a fast local
           // UPDATE — so the role is set before the account is useful. Empty
           // ADMIN_EMAILS → no-op.
+          //
+          // SECURITY: this grant is only safe when email verification is ON
+          // (`requireEmailVerification` above is `isEmailConfigured()`). With NO
+          // email provider, verification is OFF, so an attacker could sign up as
+          // an UNCLAIMED allow-listed address and get an admin session at once.
+          // In an email-less production, prefer the `promote-admin` script over
+          // ADMIN_EMAILS. See @repo/auth CLAUDE.md.
           const adminEmails = (env.ADMIN_EMAILS ?? "")
             .split(",")
             .map((e) => e.trim().toLowerCase())

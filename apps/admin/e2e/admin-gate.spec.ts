@@ -1,30 +1,35 @@
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 
 const PASSWORD = "password1234"; // ≥ 8 (Better Auth minPasswordLength).
+const ORIGIN = "http://localhost:3300"; // must match playwright.config webServer
 
-/**
- * Sign up via the Better Auth API. This auto-creates a session in the page's
- * browser context (page.request shares the context cookie jar), so a subsequent
- * `page.goto` is authenticated as this user — exactly what we need to exercise
- * `requireAdmin` against a REAL session.
- */
-async function signUp(
-  request: APIRequestContext,
-  email: string,
-): Promise<void> {
-  const res = await request.post("/api/auth/sign-up/email", {
-    data: { email, password: PASSWORD, name: email },
+/** Sign up (ignore "already exists" — the DB is shared across specs in a run).
+ *  Better Auth's CSRF needs a trusted Origin on the API call. */
+async function signUp(request: APIRequestContext, email: string): Promise<void> {
+  await request
+    .post("/api/auth/sign-up/email", {
+      data: { email, password: PASSWORD, name: email },
+      headers: { origin: ORIGIN },
+    })
+    .catch(() => {});
+}
+
+/** Ensure admin@example.com exists (ADMIN_EMAILS → role admin) and is signed in. */
+async function signInAsAdmin(page: Page): Promise<void> {
+  await signUp(page.request, "admin@example.com");
+  const res = await page.request.post("/api/auth/sign-in/email", {
+    data: { email: "admin@example.com", password: PASSWORD },
+    headers: { origin: ORIGIN },
   });
   expect(res.ok()).toBeTruthy();
 }
 
-test("an allow-listed email is promoted to admin and reaches the gated dashboard", async ({
-  page,
-}) => {
-  // ADMIN_EMAILS=admin@example.com → the create-hook promotes this user to admin.
-  await signUp(page.request, "admin@example.com");
+test("an allow-listed admin reaches the gated dashboard", async ({ page }) => {
+  // Reaching the dashboard ⟺ role admin ⟺ the create-hook promoted the
+  // ADMIN_EMAILS address (a non-admin is bounced — see the next test).
+  await signInAsAdmin(page);
 
   await page.goto("/");
 
@@ -38,7 +43,8 @@ test("an allow-listed email is promoted to admin and reaches the gated dashboard
 test("a non-admin is bounced from the dashboard (notFound)", async ({
   page,
 }) => {
-  await signUp(page.request, "normal-user@example.com"); // not allow-listed
+  // Unique, not allow-listed → role user → auto-signed-in by sign-up.
+  await signUp(page.request, `normal-${Date.now()}@example.com`);
 
   await page.goto("/");
 
@@ -48,15 +54,13 @@ test("a non-admin is bounced from the dashboard (notFound)", async ({
   ).toHaveCount(0);
 });
 
-test("the sign-in page logs an existing admin into the dashboard", async ({
-  page,
-}) => {
-  // Create the admin, then drop the auto-session so we drive the real sign-in UI
-  // from a signed-out state.
-  await signUp(page.request, "admin@example.com").catch(() => {
-    // May already exist from the first test (shared DB, serial run) — fine.
-  });
-  await page.request.post("/api/auth/sign-out").catch(() => {});
+test("the sign-in page logs an admin into the dashboard", async ({ page }) => {
+  // Ensure the admin exists, then drop the session so we drive the real sign-in
+  // UI from a signed-out state.
+  await signInAsAdmin(page);
+  await page.request
+    .post("/api/auth/sign-out", { headers: { origin: ORIGIN } })
+    .catch(() => {});
   await page.context().clearCookies();
 
   await page.goto("/sign-in");

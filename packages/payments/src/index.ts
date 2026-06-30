@@ -58,6 +58,14 @@ export {
   type SubscriptionRecord,
 } from "./subscription";
 
+export {
+  refundLatestPayment,
+  extendSubscription,
+  grantProComp,
+  revokeProComp,
+  type BillingResult,
+} from "./admin";
+
 import { configuredPriceId, isStripeConfigured } from "./client";
 
 /**

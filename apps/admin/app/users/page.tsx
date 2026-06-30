@@ -116,6 +116,9 @@ export default async function UsersPage({
                     </Button>
                   </form>
                   <DeleteUserButton userId={u.id} disabled={isSelf} />
+                  <Button asChild size="sm" variant="ghost">
+                    <Link href={`/users/${u.id}`}>Manage</Link>
+                  </Button>
                 </td>
               </tr>
             );

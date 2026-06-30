@@ -44,6 +44,12 @@ test("no-unscoped-owner-table", () => {
         code: "db.select().from(user)",
         options: [{ tables: ["task"] }],
       },
+      // Two scoped owner queries batched in one statement — each chain has its
+      // own helper, so both are fine (chain-scoped check).
+      {
+        code: "const [a, b] = await Promise.all([db.select().from(task).where(ownedBy(task, u)), db.delete(subscription).where(ownedRow(subscription, u, id))])",
+        options: [{ tables: ["task", "subscription"] }],
+      },
     ],
     invalid: [
       // Whole-WHERE omission.
@@ -67,6 +73,14 @@ test("no-unscoped-owner-table", () => {
       {
         code: "db.delete(schema.pushSubscription).where(inArray(schema.pushSubscription.endpoint, eps))",
         options: [{ tables: ["pushSubscription"] }],
+        errors: [{ messageId: "unscoped" }],
+      },
+      // One scoped + one UNSCOPED owner query in the SAME statement: the
+      // unscoped sibling must still be flagged (it used to be whitelisted by the
+      // scoped sibling's helper when the whole statement was scanned).
+      {
+        code: "const [a, b] = await Promise.all([db.select().from(task).where(ownedBy(task, u)), db.select().from(subscription)])",
+        options: [{ tables: ["task", "subscription"] }],
         errors: [{ messageId: "unscoped" }],
       },
     ],

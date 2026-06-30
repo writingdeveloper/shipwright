@@ -56,17 +56,23 @@ export default {
       return null;
     }
 
-    /** Nearest enclosing statement (or variable declaration). */
-    function enclosingStatement(node) {
+    /**
+     * Root of THIS query's fluent chain — walk up only while we stay inside the
+     * same `<chain>.method(...)` sequence (the node is the object of a member
+     * access, or the callee of a call). This scopes the presence-check to one
+     * query's own chain, so a scoped sibling query in the SAME statement (e.g. a
+     * `Promise.all([scoped, unscoped])`) can no longer whitelist an unscoped one.
+     */
+    function chainRoot(node) {
       let n = node;
       while (
         n.parent &&
-        !/Statement$/.test(n.parent.type) &&
-        n.parent.type !== "VariableDeclaration"
+        ((n.parent.type === "MemberExpression" && n.parent.object === n) ||
+          (n.parent.type === "CallExpression" && n.parent.callee === n))
       ) {
         n = n.parent;
       }
-      return n.parent ?? n;
+      return n;
     }
 
     return {
@@ -82,7 +88,7 @@ export default {
         const name = tableName(node.arguments[0]);
         if (!name || !owners.has(name)) return;
 
-        const text = sourceCode.getText(enclosingStatement(node));
+        const text = sourceCode.getText(chainRoot(node));
         if (SCOPE_HELPERS.some((h) => text.includes(`${h}(`))) return;
 
         context.report({

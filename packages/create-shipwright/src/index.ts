@@ -270,7 +270,14 @@ async function copyLocalTemplate(from: string, to: string): Promise<void> {
     filter: (src) => {
       const base = path.basename(src);
       if (SKIP.has(base)) return false;
-      if (base === ".env" || base.startsWith(".env.")) return false;
+      // Drop real env files (.env, .env.local, .env.production, …) but KEEP the
+      // committed templates (.env.example / .env.sample) — the fresh project's
+      // very first onboarding step is `cp apps/web/.env.example apps/web/.env`,
+      // so excluding them (they also match `.env.*`) would break setup.
+      const isEnvTemplate = base === ".env.example" || base === ".env.sample";
+      if (!isEnvTemplate && (base === ".env" || base.startsWith(".env."))) {
+        return false;
+      }
       if (base.endsWith(".db") || base.includes(".db-")) return false;
       return true;
     },

@@ -60,13 +60,16 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   forbidOnly: isCI,
-  retries: isCI ? 2 : 0,
+  // 3 retries on CI (2 locally would be pointless). The serial journeys each do
+  // 1–2 Better Auth password hashes (scrypt is DELIBERATELY slow), so on an
+  // occasionally-throttled shared 2-core runner a whole journey can spike ~15×
+  // and blow the timeout. That's the real, recurring flake class — retries are
+  // the actual defence (a runner is rarely throttled across all attempts); the
+  // timeout below just needs enough headroom for a normal-slow runner.
+  retries: isCI ? 3 : 0,
   workers: 1,
   reporter: [["list"]],
-  // The serial sign-up journeys drive 6+ sequential server-action round-trips
-  // against a production build; 60s was tight enough to time out on a loaded CI
-  // runner (recovered on retry). 90s gives headroom without masking a real hang.
-  timeout: 90_000,
+  timeout: 120_000,
   expect: { timeout: 10_000 },
   use: {
     baseURL: BASE_URL,

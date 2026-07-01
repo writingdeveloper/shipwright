@@ -51,10 +51,13 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   forbidOnly: isCI,
-  retries: isCI ? 2 : 0,
+  // Match apps/web: 3 CI retries + a generous timeout. The admin journeys sign
+  // up + verify (Better Auth scrypt hashing is deliberately slow), which can
+  // spike on a throttled shared runner — retries are the real defence.
+  retries: isCI ? 3 : 0,
   workers: 1,
   reporter: [["list"]],
-  timeout: 60_000,
+  timeout: 120_000,
   expect: { timeout: 10_000 },
   use: { baseURL: BASE_URL, trace: "on-first-retry" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

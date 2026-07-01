@@ -63,7 +63,10 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: 1,
   reporter: [["list"]],
-  timeout: 60_000,
+  // The serial sign-up journeys drive 6+ sequential server-action round-trips
+  // against a production build; 60s was tight enough to time out on a loaded CI
+  // runner (recovered on retry). 90s gives headroom without masking a real hang.
+  timeout: 90_000,
   expect: { timeout: 10_000 },
   use: {
     baseURL: BASE_URL,

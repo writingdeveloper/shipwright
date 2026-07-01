@@ -216,6 +216,12 @@ test("add-task: blank title is rejected inline; a valid title clears the field",
   // Automated a11y scan of the AUTHENTICATED dashboard (one task in the list) —
   // covers the h1/h2 outline, the aria-live count, the clickable task label, the
   // Files card, and contrast. Done signed-in so no extra sign-up hits the limiter.
+  //
+  // Gate the scan on the document <title> being present: Next applies the route
+  // title a tick after the client transition settles, and axe's `document-title`
+  // rule reads it synchronously — scanning too early flakes that one rule on a
+  // slow runner. Waiting for a non-empty title makes the scan deterministic.
+  await expect(page).toHaveTitle(/\S/);
   const { violations } = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

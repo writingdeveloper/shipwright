@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "../../../i18n/navigation";
 import { authClient } from "@repo/auth/client";
@@ -18,6 +19,7 @@ import { Label } from "@repo/ui/components/ui/label";
 import { PasswordInput } from "../../../components/password-input";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth.resetPassword");
   const router = useRouter();
   const token = useSearchParams().get("token");
   const [password, setPassword] = useState("");
@@ -38,9 +40,7 @@ export default function ResetPasswordPage() {
     setPending(false);
 
     if (error) {
-      setError(
-        error.message ?? "Couldn't reset your password. Try the link again.",
-      );
+      setError(error.message ?? t("error"));
       return;
     }
     router.push("/sign-in");
@@ -54,21 +54,19 @@ export default function ResetPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>Set a new password</h1>
+            <h1>{t("title")}</h1>
           </CardTitle>
-          <CardDescription>
-            Choose a new password for your account.
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         {!token ? (
           <CardContent>
             <p className="text-destructive text-sm" role="alert">
-              This reset link is invalid or has expired.{" "}
+              {t("invalidLink")}{" "}
               <Link
                 href="/forgot-password"
                 className="text-primary hover:underline"
               >
-                Request a new one
+                {t("requestNew")}
               </Link>
               .
             </p>
@@ -77,12 +75,12 @@ export default function ResetPasswordPage() {
           <form onSubmit={onSubmit}>
             <CardContent className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="password">New password</Label>
+                <Label htmlFor="password">{t("passwordLabel")}</Label>
                 <PasswordInput
                   id="password"
                   name="password"
                   autoComplete="new-password"
-                  placeholder="At least 8 characters"
+                  placeholder={t("passwordPlaceholder")}
                   minLength={8}
                   required
                   autoFocus
@@ -104,7 +102,7 @@ export default function ResetPasswordPage() {
             </CardContent>
             <CardFooter className="mt-6">
               <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "Saving…" : "Reset password"}
+                {pending ? t("submitLoading") : t("submit")}
               </Button>
             </CardFooter>
           </form>

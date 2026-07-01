@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { logger } from "@repo/observability/logger";
 import {
   deleteSubscription,
@@ -51,9 +52,10 @@ export async function sendTestPush(): Promise<void> {
   // The expensive one: each call fans out real network sends, one per saved
   // subscription — the main thing worth bounding.
   if (!(await allowAction("push", userId))) return;
+  const t = await getTranslations("dashboard.notifications");
   const result = await sendPushToUser(userId, {
-    title: "Test notification",
-    body: "Push notifications are working 🎉",
+    title: t("testTitle"),
+    body: t("testBody"),
     url: "/dashboard",
     tag: "shipwright-test",
   });

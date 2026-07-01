@@ -49,7 +49,7 @@ export default async function Home({
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>Shipwright</h1>
+            <h1>{t("home.title")}</h1>
           </CardTitle>
           <CardDescription>{t("home.tagline")}</CardDescription>
         </CardHeader>

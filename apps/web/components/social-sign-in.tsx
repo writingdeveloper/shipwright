@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient } from "@repo/auth/client";
 import { enabledSocialProviders } from "@repo/auth/config";
 import { defaultLocale } from "../i18n/routing";
@@ -18,6 +18,7 @@ const LABELS: Record<"github" | "google", string> = {
  * configured, so the keyless app shows only the email/password form.
  */
 export function SocialSignIn() {
+  const t = useTranslations("auth.social");
   const locale = useLocale();
   const providers = enabledSocialProviders();
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export function SocialSignIn() {
     // On success the browser is redirected, so we only reach here on error.
     setPending(false);
     if (error) {
-      setError(error.message ?? `Couldn't sign in with ${LABELS[provider]}.`);
+      setError(error.message ?? t("error", { provider: LABELS[provider] }));
     }
   }
 
@@ -53,7 +54,7 @@ export function SocialSignIn() {
             disabled={pending}
             onClick={() => signInWith(p)}
           >
-            Continue with {LABELS[p]}
+            {t("continueWith", { provider: LABELS[p] })}
           </Button>
         ))}
       </div>
@@ -67,7 +68,7 @@ export function SocialSignIn() {
         aria-hidden="true"
       >
         <span className="bg-border h-px flex-1" />
-        or
+        {t("divider")}
         <span className="bg-border h-px flex-1" />
       </div>
     </div>

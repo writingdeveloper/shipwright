@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   getCurrentSubscriptionEndpoint,
   subscribeToPush,
@@ -23,6 +24,7 @@ import {
  * instead of an unhandled rejection + a stuck UI.
  */
 export function PushToggle() {
+  const t = useTranslations("dashboard.notifications");
   const [endpoint, setEndpoint] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,9 +57,7 @@ export function PushToggle() {
       try {
         const sub = await subscribeToPush();
         if (!sub?.endpoint) {
-          setError(
-            "Couldn't enable notifications (permission denied or unsupported).",
-          );
+          setError(t("errorEnable"));
           return;
         }
         await savePushSubscription(
@@ -68,7 +68,7 @@ export function PushToggle() {
         );
         setEndpoint(sub.endpoint);
       } catch {
-        setError("Couldn't enable notifications. Please try again.");
+        setError(t("errorEnableRetry"));
       }
     });
 
@@ -80,7 +80,7 @@ export function PushToggle() {
         if (removed) await removePushSubscription(removed);
         setEndpoint(null);
       } catch {
-        setError("Couldn't disable notifications. Please try again.");
+        setError(t("errorDisable"));
       }
     });
 
@@ -90,7 +90,7 @@ export function PushToggle() {
       try {
         await sendTestPush();
       } catch {
-        setError("Couldn't send the test notification. Please try again.");
+        setError(t("errorTest"));
       }
     });
 
@@ -100,15 +100,15 @@ export function PushToggle() {
         {subscribed ? (
           <>
             <Button onClick={onUnsubscribe} disabled={pending} variant="outline">
-              Disable notifications
+              {t("disable")}
             </Button>
             <Button onClick={onTest} disabled={pending} variant="secondary">
-              Send test notification
+              {t("test")}
             </Button>
           </>
         ) : (
           <Button onClick={onSubscribe} disabled={pending || !ready}>
-            Enable notifications
+            {t("enable")}
           </Button>
         )}
       </div>

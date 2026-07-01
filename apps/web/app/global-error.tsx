@@ -46,6 +46,8 @@ export default function GlobalError({
           id="main"
           className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center"
         >
+          {/* Root error boundary renders outside the NextIntlClientProvider, so
+              strings stay literal — there is no translator in scope here. */}
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
           <p className="text-sm text-muted-foreground">
             An unexpected error occurred. You can try again.

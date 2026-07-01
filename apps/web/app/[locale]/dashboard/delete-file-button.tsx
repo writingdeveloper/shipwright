@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 
 import { deleteFile } from "./file-actions";
@@ -12,6 +13,7 @@ import { deleteFile } from "./file-actions";
  * reader user isn't dropped to <body>.
  */
 export function DeleteFileButton({ id, name }: { id: string; name: string }) {
+  const t = useTranslations("dashboard.files");
   return (
     <form action={deleteFile}>
       <input type="hidden" name="id" value={id} />
@@ -20,7 +22,7 @@ export function DeleteFileButton({ id, name }: { id: string; name: string }) {
         variant="ghost"
         size="icon"
         className="text-muted-foreground hover:text-destructive"
-        aria-label={`Delete "${name}"`}
+        aria-label={t("deleteAriaLabel", { name })}
         onClick={() => {
           document.getElementById("files-heading")?.focus();
         }}

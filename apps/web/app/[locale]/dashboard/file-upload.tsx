@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 
 import { requestUploadUrl, saveFileRecord } from "./file-actions";
@@ -15,6 +16,7 @@ import { requestUploadUrl, saveFileRecord } from "./file-actions";
  * button and carries an `sr-only` label so it stays accessible.
  */
 export function FileUpload() {
+  const t = useTranslations("dashboard.files");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -33,13 +35,12 @@ export function FileUpload() {
         body: file,
         headers: { "Content-Type": file.type || "application/octet-stream" },
       });
-      if (!res.ok) throw new Error(`Upload failed (${res.status}).`);
+      if (!res.ok)
+        throw new Error(t("errorUploadStatus", { status: res.status }));
       await saveFileRecord(key, file.name, file.size, file.type);
       startTransition(() => router.refresh());
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Upload failed. Please try again.",
-      );
+      setError(err instanceof Error ? err.message : t("errorUpload"));
     } finally {
       setBusy(false);
       // Clear the input so picking the same file again re-fires onChange.
@@ -52,7 +53,7 @@ export function FileUpload() {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor="file-upload-input" className="sr-only">
-        Choose a file to upload
+        {t("uploadLabel")}
       </label>
       <input
         ref={inputRef}
@@ -68,7 +69,7 @@ export function FileUpload() {
           onClick={() => inputRef.current?.click()}
           disabled={disabled}
         >
-          {busy ? "Uploading…" : "Upload a file"}
+          {busy ? t("uploadLoading") : t("upload")}
         </Button>
       </div>
       {error ? (

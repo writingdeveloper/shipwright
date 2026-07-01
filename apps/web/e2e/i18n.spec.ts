@@ -70,3 +70,26 @@ test("LocaleSwitcher is reachable site-wide (not just the home page)", async ({
   await page.goto("/sign-in");
   await expect(page.getByLabel("Language")).toBeVisible();
 });
+
+test("externalized app surfaces render fully in Korean, not just the home page", async ({
+  page,
+}) => {
+  // The whole app's copy is externalized to messages/<locale>.json, so a
+  // non-default locale must translate real UI surfaces (a form, its labels and
+  // button) — this is what guarantees adding a language is a messages-file drop,
+  // with no hardcoded English leaking through.
+  await page.goto("/ko/sign-in");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ko");
+  await expect(
+    page.getByRole("heading", { name: "다시 오신 것을 환영합니다" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("이메일")).toBeVisible();
+  // exact: the PasswordInput's show/hide toggle also carries "비밀번호 표시".
+  await expect(page.getByLabel("비밀번호", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "로그인" })).toBeVisible();
+  // The password show/hide toggle is translated too (proves aria-labels, not
+  // just visible text, are externalized).
+  await expect(
+    page.getByRole("button", { name: "비밀번호 표시" }),
+  ).toBeVisible();
+});

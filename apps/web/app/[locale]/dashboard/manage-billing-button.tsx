@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 
 import { openBillingPortal } from "./billing-actions";
@@ -15,6 +16,7 @@ import { openBillingPortal } from "./billing-actions";
  */
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const t = useTranslations("dashboard.billing");
   return (
     <Button
       type="submit"
@@ -22,7 +24,7 @@ function SubmitButton() {
       disabled={pending}
       aria-busy={pending}
     >
-      {pending ? "Opening…" : "Manage billing"}
+      {pending ? t("manageLoading") : t("manage")}
     </Button>
   );
 }

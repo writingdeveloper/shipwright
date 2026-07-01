@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link, useRouter } from "../../../i18n/navigation";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
@@ -19,6 +20,8 @@ import { PasswordInput } from "../../../components/password-input";
 import { SocialSignIn } from "../../../components/social-sign-in";
 
 export function SignInForm() {
+  const t = useTranslations("auth.signIn");
+  const tNav = useTranslations("nav");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +41,7 @@ export function SignInForm() {
     setPending(false);
 
     if (error) {
-      setError(error.message ?? "Invalid email or password.");
+      setError(error.message ?? t("invalidCredentials"));
       // Move focus back to the first field so the keyboard/SR user lands on
       // what to fix, not on the (now re-enabled) submit button.
       document.getElementById("email")?.focus();
@@ -54,23 +57,21 @@ export function SignInForm() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>Welcome back</h1>
+            <h1>{t("title")}</h1>
           </CardTitle>
-          <CardDescription>
-            Sign in to your account with your email and password.
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
           <CardContent className="flex flex-col gap-4">
             <SocialSignIn />
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("emailLabel")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
                 autoFocus
                 value={email}
@@ -81,12 +82,12 @@ export function SignInForm() {
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("passwordLabel")}</Label>
                 <Link
                   href="/forgot-password"
                   className="text-primary text-sm hover:underline"
                 >
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <PasswordInput
@@ -112,12 +113,12 @@ export function SignInForm() {
           </CardContent>
           <CardFooter className="mt-6 flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Signing in…" : "Sign in"}
+              {pending ? t("submitLoading") : t("submit")}
             </Button>
             <p className="text-muted-foreground text-sm">
-              Don&apos;t have an account?{" "}
+              {t("noAccount")}{" "}
               <Link href="/sign-up" className="text-primary hover:underline">
-                Sign up
+                {tNav("signUp")}
               </Link>
             </p>
           </CardFooter>

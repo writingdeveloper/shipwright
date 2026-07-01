@@ -1,12 +1,17 @@
 {
   "home": {
     "tagline": "사용자별 할 일 앱. 계정을 만들거나 로그인하여 대시보드로 이동하세요.",
-    "body": "인증과 데이터베이스 기반은 Better Auth와 Drizzle(libSQL)로 구성되어 있습니다. 보호된 대시보드가 서버 측 인증 게이팅을 증명합니다."
+    "body": "인증과 데이터베이스 기반은 Better Auth와 Drizzle(libSQL)로 구성되어 있습니다. 보호된 대시보드가 서버 측 인증 게이팅을 증명합니다.",
+    "title": "Shipwright"
   },
   "nav": {
     "signIn": "로그인",
     "signUp": "회원가입",
-    "dashboard": "대시보드"
+    "dashboard": "대시보드",
+    "settings": "설정",
+    "backHome": "홈으로",
+    "backHomeArrow": "← 홈으로",
+    "backToDashboard": "대시보드로 돌아가기"
   },
   "footer": {
     "privacy": "개인정보처리방침",
@@ -19,5 +24,215 @@
   },
   "layout": {
     "skipToContent": "본문으로 건너뛰기"
+  },
+  "auth": {
+    "signIn": {
+      "title": "다시 오신 것을 환영합니다",
+      "description": "이메일과 비밀번호로 계정에 로그인하세요.",
+      "emailLabel": "이메일",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "비밀번호",
+      "forgotPassword": "비밀번호를 잊으셨나요?",
+      "submit": "로그인",
+      "submitLoading": "로그인 중…",
+      "noAccount": "계정이 없으신가요?",
+      "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다."
+    },
+    "signUp": {
+      "title": "계정 만들기",
+      "description": "이메일과 비밀번호로 가입하여 시작하세요.",
+      "nameLabel": "이름",
+      "namePlaceholder": "홍길동",
+      "emailLabel": "이메일",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "비밀번호",
+      "passwordPlaceholder": "8자 이상",
+      "submit": "계정 만들기",
+      "submitLoading": "계정 생성 중…",
+      "hasAccount": "이미 계정이 있으신가요?",
+      "error": "문제가 발생했습니다. 다시 시도해 주세요."
+    },
+    "forgotPassword": {
+      "title": "비밀번호를 잊으셨나요?",
+      "description": "이메일을 입력하시면 재설정 링크를 보내드립니다.",
+      "emailLabel": "이메일",
+      "emailPlaceholder": "you@example.com",
+      "submit": "재설정 링크 보내기",
+      "submitLoading": "보내는 중…",
+      "remembered": "기억나셨나요?",
+      "success": "{email} 계정이 존재한다면 재설정 링크가 발송됩니다 — 받은편지함을 확인하세요.",
+      "error": "문제가 발생했습니다. 다시 시도해 주세요."
+    },
+    "resetPassword": {
+      "title": "새 비밀번호 설정",
+      "description": "계정에 사용할 새 비밀번호를 선택하세요.",
+      "passwordLabel": "새 비밀번호",
+      "passwordPlaceholder": "8자 이상",
+      "invalidLink": "이 재설정 링크는 유효하지 않거나 만료되었습니다.",
+      "requestNew": "새 링크 요청",
+      "submit": "비밀번호 재설정",
+      "submitLoading": "저장 중…",
+      "error": "비밀번호를 재설정하지 못했습니다. 링크를 다시 시도해 주세요."
+    },
+    "social": {
+      "continueWith": "{provider}(으)로 계속하기",
+      "error": "{provider}(으)로 로그인하지 못했습니다.",
+      "divider": "또는"
+    },
+    "passwordInput": {
+      "show": "비밀번호 표시",
+      "hide": "비밀번호 숨기기"
+    },
+    "signOut": {
+      "label": "로그아웃",
+      "loading": "로그아웃 중…"
+    }
+  },
+  "dashboard": {
+    "title": "할 일",
+    "signedInAs": "로그인 계정",
+    "proBadge": "Pro",
+    "addTask": {
+      "heading": "할 일 추가",
+      "description": "완료해야 할 일을 기록하세요.",
+      "label": "할 일 제목",
+      "placeholder": "예: 할 일 기능 출시하기",
+      "submit": "추가",
+      "submitLoading": "추가 중…",
+      "errorEmpty": "할 일 제목을 입력하세요.",
+      "errorTooLong": "제목은 최대 {max}자까지 가능합니다.",
+      "errorRateLimit": "요청이 너무 많습니다 — 잠시 후 다시 시도해 주세요."
+    },
+    "tasks": {
+      "heading": "내 할 일",
+      "statusEmpty": "아직 없습니다.",
+      "statusCount": "{total}개 중 {completed}개 완료",
+      "emptyHeading": "아직 할 일이 없습니다",
+      "emptyMessage": "위 양식으로 첫 할 일을 추가하세요.",
+      "deleteAriaLabel": "\"{title}\" 삭제",
+      "markDone": "\"{title}\" 완료로 표시",
+      "markNotDone": "\"{title}\" 미완료로 표시"
+    },
+    "billing": {
+      "heading": "결제",
+      "descriptionPro": "Pro 플랜을 이용 중입니다. 후원해 주셔서 감사합니다!",
+      "descriptionFree": "Pro로 업그레이드하여 개발을 후원하세요.",
+      "statusActive": "Pro 구독이 활성화되어 있습니다.",
+      "notConfigured": "결제가 구성되지 않았습니다.",
+      "checkoutSuccess": "결제가 완료되었습니다 — 곧 Pro 이용이 활성화됩니다.",
+      "checkoutCancelled": "결제가 취소되었습니다 — 청구되지 않았습니다.",
+      "checkoutError": "결제를 시작하지 못했습니다. 다시 시도해 주세요.",
+      "portalError": "결제 포털을 열지 못했습니다. 다시 시도해 주세요.",
+      "upgrade": "Pro로 업그레이드",
+      "upgradeLoading": "이동 중…",
+      "manage": "결제 관리",
+      "manageLoading": "여는 중…"
+    },
+    "notifications": {
+      "heading": "알림",
+      "descriptionEnabled": "이 기기에서 알림을 받으려면 웹 푸시를 활성화하세요.",
+      "descriptionDisabled": "푸시가 구성되지 않았습니다.",
+      "configNote": "웹 푸시를 활성화하려면 NEXT_PUBLIC_VAPID_PUBLIC_KEY와 VAPID_PRIVATE_KEY를 설정하세요.",
+      "enable": "알림 활성화",
+      "disable": "알림 비활성화",
+      "test": "테스트 알림 보내기",
+      "errorEnable": "알림을 활성화하지 못했습니다 (권한 거부 또는 미지원).",
+      "errorEnableRetry": "알림을 활성화하지 못했습니다. 다시 시도해 주세요.",
+      "errorDisable": "알림을 비활성화하지 못했습니다. 다시 시도해 주세요.",
+      "errorTest": "테스트 알림을 보내지 못했습니다. 다시 시도해 주세요.",
+      "testTitle": "테스트 알림",
+      "testBody": "푸시 알림이 정상 작동합니다 🎉"
+    },
+    "files": {
+      "heading": "파일",
+      "statusNotConfigured": "저장소가 구성되지 않았습니다.",
+      "statusEmpty": "아직 파일이 없습니다.",
+      "statusCount": "파일 {count}개",
+      "emptyHeading": "아직 파일이 없습니다",
+      "emptyMessage": "위 버튼으로 첫 파일을 업로드하세요.",
+      "configNote": "파일 업로드를 활성화하려면 S3_ENDPOINT, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_BUCKET을 설정하세요.",
+      "uploadLabel": "업로드할 파일 선택",
+      "upload": "파일 업로드",
+      "uploadLoading": "업로드 중…",
+      "errorTooLarge": "파일이 너무 큽니다 (최대 10MB).",
+      "errorRateLimit": "업로드가 너무 많습니다 — 1분 후 다시 시도해 주세요.",
+      "errorNotConfigured": "저장소가 구성되지 않았습니다",
+      "errorUpload": "업로드에 실패했습니다. 다시 시도해 주세요.",
+      "errorUploadStatus": "업로드에 실패했습니다 ({status}).",
+      "deleteAriaLabel": "\"{name}\" 삭제"
+    },
+    "trpc": {
+      "heading": "할 일 (tRPC 경유)",
+      "description": "@repo/api tRPC 클라이언트를 통해 읽습니다 (선택 사항, Server Actions와 병행).",
+      "loading": "불러오는 중…",
+      "error": "불러오지 못했습니다.",
+      "statusCount": "tRPC로 할 일 {count}개를 불러왔습니다."
+    }
+  },
+  "settings": {
+    "title": "설정",
+    "manageAccount": "계정 관리:",
+    "profile": {
+      "heading": "프로필",
+      "description": "앱 전반에서 표시되는 정보입니다.",
+      "nameLabel": "이름",
+      "submit": "이름 저장",
+      "submitLoading": "저장 중…",
+      "success": "이름이 업데이트되었습니다.",
+      "error": "이름을 업데이트하지 못했습니다.",
+      "errorValidation": "이름을 입력하세요 (최대 {max}자)."
+    },
+    "password": {
+      "heading": "비밀번호",
+      "description": "비밀번호를 변경하면 다른 모든 기기에서 로그아웃됩니다.",
+      "currentLabel": "현재 비밀번호",
+      "newLabel": "새 비밀번호",
+      "success": "비밀번호가 변경되었습니다.",
+      "submit": "비밀번호 변경",
+      "submitLoading": "변경 중…",
+      "errorEmpty": "두 비밀번호 필드를 모두 입력하세요.",
+      "errorTooShort": "새 비밀번호는 8자 이상이어야 합니다.",
+      "errorIncorrect": "현재 비밀번호가 올바르지 않습니다."
+    },
+    "sessions": {
+      "heading": "세션",
+      "description": "계정이 로그인되어 있는 위치입니다.",
+      "unknownDevice": "알 수 없는 기기",
+      "browserFallback": "브라우저",
+      "osUnknown": "알 수 없는 OS",
+      "deviceLabel": "{os}의 {browser}",
+      "currentDevice": " — 이 기기",
+      "since": "{date}부터",
+      "revoke": "다른 세션 로그아웃",
+      "revokeWithCount": "다른 세션 로그아웃 ({count})"
+    },
+    "danger": {
+      "heading": "계정 삭제",
+      "description": "계정, 할 일, 파일, 푸시 구독을 영구히 삭제하고 활성 구독을 취소합니다. 되돌릴 수 없습니다.",
+      "passwordLabel": "비밀번호로 확인",
+      "reveal": "계정 삭제…",
+      "submit": "내 계정 영구 삭제",
+      "submitLoading": "삭제 중…",
+      "cancel": "취소",
+      "errorEmpty": "삭제를 확인하려면 비밀번호를 입력하세요.",
+      "errorIncorrect": "비밀번호가 올바르지 않습니다.",
+      "errorRateLimit": "요청이 너무 많습니다 — 잠시 후 다시 시도해 주세요."
+    }
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "message": "해당 페이지를 찾을 수 없습니다.",
+      "action": "홈으로"
+    },
+    "unexpected": {
+      "title": "문제가 발생했습니다",
+      "message": "예기치 않은 오류가 발생했습니다. 다시 시도할 수 있습니다.",
+      "action": "다시 시도"
+    },
+    "offline": {
+      "title": "오프라인 상태입니다",
+      "message": "연결 없이는 이 페이지를 사용할 수 없습니다. 다시 연결한 후 시도하세요 — 이전에 불러온 페이지는 계속 작동합니다."
+    }
   }
 }

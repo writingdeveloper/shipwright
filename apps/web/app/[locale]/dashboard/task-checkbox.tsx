@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Checkbox } from "@repo/ui/components/ui/checkbox";
 
 import { toggleTask } from "./actions";
@@ -24,6 +25,7 @@ export function TaskCheckbox({
   title: string;
   completed: boolean;
 }) {
+  const t = useTranslations("dashboard.tasks");
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -35,8 +37,8 @@ export function TaskCheckbox({
         onCheckedChange={() => formRef.current?.requestSubmit()}
         aria-label={
           completed
-            ? `Mark "${title}" as not done`
-            : `Mark "${title}" as done`
+            ? t("markNotDone", { title })
+            : t("markDone", { title })
         }
       />
     </form>

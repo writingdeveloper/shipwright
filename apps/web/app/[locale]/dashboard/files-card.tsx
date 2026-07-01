@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { isStorageConfigured } from "@repo/storage";
 import {
   Card,
@@ -26,6 +27,7 @@ function formatBytes(bytes: number): string {
  * "Storage not configured" note).
  */
 export async function FilesCard() {
+  const t = await getTranslations("dashboard.files");
   const storageConfigured = isStorageConfigured();
   const files = await listFiles();
 
@@ -34,17 +36,17 @@ export async function FilesCard() {
       <CardHeader>
         <CardTitle asChild>
           <h2 id="files-heading" tabIndex={-1}>
-            Files
+            {t("heading")}
           </h2>
         </CardTitle>
         {/* Live region: announces the new count after an upload / delete
             (the RSC card re-renders on revalidation). */}
         <CardDescription role="status" aria-live="polite">
           {!storageConfigured
-            ? "Storage not configured."
+            ? t("statusNotConfigured")
             : files.length === 0
-              ? "No files yet."
-              : `${files.length} file${files.length === 1 ? "" : "s"}`}
+              ? t("statusEmpty")
+              : t("statusCount", { count: files.length })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -53,16 +55,17 @@ export async function FilesCard() {
             data-testid="storage-not-configured"
             className="text-muted-foreground text-sm"
           >
-            Set S3_ENDPOINT, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
-            and S3_BUCKET to enable file uploads.
+            {t("configNote")}
           </p>
         ) : (
           <div className="flex flex-col gap-4">
             <FileUpload />
             {files.length === 0 ? (
               <div className="border-border text-muted-foreground flex flex-col items-center gap-1 rounded-lg border border-dashed px-6 py-10 text-center text-sm">
-                <p className="text-foreground font-medium">No files yet</p>
-                <p>Upload your first file using the button above.</p>
+                <p className="text-foreground font-medium">
+                  {t("emptyHeading")}
+                </p>
+                <p>{t("emptyMessage")}</p>
               </div>
             ) : (
               <ul className="flex flex-col gap-1">

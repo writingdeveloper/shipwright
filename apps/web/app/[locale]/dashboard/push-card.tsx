@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { isPushConfigured } from "@repo/pwa/config";
 import {
   Card,
@@ -10,17 +11,18 @@ import {
 import { PushToggle } from "./push-toggle";
 
 /** Web-push notifications card. Self-hides the toggle when push isn't configured. */
-export function PushCard() {
+export async function PushCard() {
+  const t = await getTranslations("dashboard.notifications");
   return (
     <Card data-testid="push-card">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Notifications</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
         <CardDescription>
           {isPushConfigured()
-            ? "Enable web push to get notified on this device."
-            : "Push not configured."}
+            ? t("descriptionEnabled")
+            : t("descriptionDisabled")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -31,8 +33,7 @@ export function PushCard() {
             data-testid="push-not-configured"
             className="text-muted-foreground text-sm"
           >
-            Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable web
-            push.
+            {t("configNote")}
           </p>
         )}
       </CardContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -25,25 +26,21 @@ const IDLE: SettingsActionState = { status: "idle" };
 export function DangerCard() {
   const [state, formAction, pending] = useActionState(deleteAccount, IDLE);
   const [armed, setArmed] = useState(false);
+  const t = useTranslations("settings.danger");
 
   return (
     <Card data-testid="danger-card" className="border-destructive/50">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Delete account</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
-        <CardDescription>
-          Permanently removes your account, tasks, files, push subscriptions,
-          and cancels any active subscription. This cannot be undone.
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {armed ? (
           <form action={formAction} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="delete-password">
-                Confirm with your password
-              </Label>
+              <Label htmlFor="delete-password">{t("passwordLabel")}</Label>
               <PasswordInput
                 id="delete-password"
                 name="password"
@@ -64,7 +61,7 @@ export function DangerCard() {
                 disabled={pending}
                 aria-busy={pending}
               >
-                {pending ? "Deleting…" : "Permanently delete my account"}
+                {pending ? t("submitLoading") : t("submit")}
               </Button>
               <Button
                 type="button"
@@ -72,7 +69,7 @@ export function DangerCard() {
                 onClick={() => setArmed(false)}
                 disabled={pending}
               >
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
           </form>
@@ -82,7 +79,7 @@ export function DangerCard() {
             variant="destructive"
             onClick={() => setArmed(true)}
           >
-            Delete account…
+            {t("reveal")}
           </Button>
         )}
       </CardContent>

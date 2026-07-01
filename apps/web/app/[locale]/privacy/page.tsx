@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "../../../i18n/navigation";
 import { absoluteUrl, breadcrumbJsonLd, createMetadata, JsonLd } from "@repo/seo";
 import { PrivacyPolicy } from "@repo/legal";
@@ -12,7 +13,9 @@ export const metadata: Metadata = createMetadata(seoSite, {
   path: "/privacy",
 });
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations("nav");
+
   return (
     <main id="main" className="bg-background flex min-h-svh justify-center p-6">
       <div className="w-full max-w-2xl py-10">
@@ -26,7 +29,7 @@ export default function PrivacyPage() {
           ])}
         />
         <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
-          <Link href="/">← Back home</Link>
+          <Link href="/">{t("backHomeArrow")}</Link>
         </Button>
         <PrivacyPolicy config={legalConfig} />
       </div>

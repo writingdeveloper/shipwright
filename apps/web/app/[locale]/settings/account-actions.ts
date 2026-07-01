@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { APIError, auth } from "@repo/auth/server";
 import { db, desc, ownedBy, uploadedFile } from "@repo/db";
 import { logger } from "@repo/observability/logger";
@@ -28,10 +28,15 @@ export type SettingsActionState = {
   readonly message?: string;
 };
 
-const RATE_LIMITED: SettingsActionState = {
-  status: "error",
-  message: "Too many requests — please wait a moment and try again.",
-};
+/**
+ * Shared "rate limited" result. Translated at call time (Server Actions can use
+ * `getTranslations`); the settings-wide rate-limit copy lives under
+ * `settings.danger.errorRateLimit`.
+ */
+async function rateLimited(): Promise<SettingsActionState> {
+  const t = await getTranslations("settings.danger");
+  return { status: "error", message: t("errorRateLimit") };
+}
 
 /** Map a Better Auth error to a user-facing message without leaking internals. */
 function authErrorMessage(error: unknown, fallback: string): string {
@@ -46,14 +51,15 @@ export async function updateName(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const session = await requireSession();
-  if (!(await allowAction("account", session.user.id))) return RATE_LIMITED;
+  if (!(await allowAction("account", session.user.id))) return rateLimited();
+  const t = await getTranslations("settings.profile");
 
   const raw = formData.get("name");
   const name = typeof raw === "string" ? raw.trim() : "";
   if (name.length === 0 || name.length > MAX_NAME_LENGTH) {
     return {
       status: "error",
-      message: `Please enter a name (at most ${MAX_NAME_LENGTH} characters).`,
+      message: t("errorValidation", { max: MAX_NAME_LENGTH }),
     };
   }
 
@@ -63,12 +69,12 @@ export async function updateName(
     logger.error("updateName: failed", { error, userId: session.user.id });
     return {
       status: "error",
-      message: authErrorMessage(error, "Could not update your name."),
+      message: authErrorMessage(error, t("error")),
     };
   }
 
   revalidatePath("/[locale]/settings", "layout");
-  return { status: "success", message: "Name updated." };
+  return { status: "success", message: t("success") };
 }
 
 /**
@@ -81,7 +87,8 @@ export async function changePassword(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const session = await requireSession();
-  if (!(await allowAction("account", session.user.id))) return RATE_LIMITED;
+  if (!(await allowAction("account", session.user.id))) return rateLimited();
+  const t = await getTranslations("settings.password");
 
   const currentPassword = formData.get("currentPassword");
   const newPassword = formData.get("newPassword");
@@ -90,14 +97,14 @@ export async function changePassword(
     typeof newPassword !== "string" ||
     currentPassword.length === 0
   ) {
-    return { status: "error", message: "Please fill in both password fields." };
+    return { status: "error", message: t("errorEmpty") };
   }
   // Mirror the server-side floor in @repo/auth (minPasswordLength: 8) so the
   // user gets an inline reason instead of a generic API error.
   if (newPassword.length < 8) {
     return {
       status: "error",
-      message: "New password must be at least 8 characters.",
+      message: t("errorTooShort"),
     };
   }
 
@@ -110,7 +117,7 @@ export async function changePassword(
     logger.warn("changePassword: failed", { userId: session.user.id });
     return {
       status: "error",
-      message: authErrorMessage(error, "Current password is incorrect."),
+      message: authErrorMessage(error, t("errorIncorrect")),
     };
   }
 
@@ -161,13 +168,14 @@ export async function deleteAccount(
 ): Promise<SettingsActionState> {
   const session = await requireSession();
   const userId = session.user.id;
-  if (!(await allowAction("account", userId))) return RATE_LIMITED;
+  if (!(await allowAction("account", userId))) return rateLimited();
+  const t = await getTranslations("settings.danger");
 
   const password = formData.get("password");
   if (typeof password !== "string" || password.length === 0) {
     return {
       status: "error",
-      message: "Please enter your password to confirm deletion.",
+      message: t("errorEmpty"),
     };
   }
 
@@ -192,7 +200,7 @@ export async function deleteAccount(
     logger.warn("deleteAccount: rejected", { userId });
     return {
       status: "error",
-      message: authErrorMessage(error, "Password is incorrect."),
+      message: authErrorMessage(error, t("errorIncorrect")),
     };
   }
 

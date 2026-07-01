@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { db, desc, ownedBy, task } from "@repo/db";
 import {
   Card,
@@ -15,6 +16,7 @@ import { TaskCheckbox } from "./task-checkbox";
  * ownership the Server Actions enforce on writes), newest first.
  */
 export async function TasksCard({ userId }: { userId: string }) {
+  const t = await getTranslations("dashboard.tasks");
   const tasks = await db
     .select()
     .from(task)
@@ -28,22 +30,22 @@ export async function TasksCard({ userId }: { userId: string }) {
       <CardHeader>
         <CardTitle asChild>
           <h2 id="tasks-heading" tabIndex={-1}>
-            Your tasks
+            {t("heading")}
           </h2>
         </CardTitle>
         {/* Live region: announces the new count to screen readers after a task
             is added / toggled / deleted (the RSC list re-renders). */}
         <CardDescription role="status" aria-live="polite">
           {tasks.length === 0
-            ? "Nothing here yet."
-            : `${completedCount} of ${tasks.length} done`}
+            ? t("statusEmpty")
+            : t("statusCount", { completed: completedCount, total: tasks.length })}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {tasks.length === 0 ? (
           <div className="border-border text-muted-foreground flex flex-col items-center gap-1 rounded-lg border border-dashed px-6 py-10 text-center text-sm">
-            <p className="text-foreground font-medium">No tasks yet</p>
-            <p>Add your first task using the form above.</p>
+            <p className="text-foreground font-medium">{t("emptyHeading")}</p>
+            <p>{t("emptyMessage")}</p>
           </div>
         ) : (
           <ul className="flex flex-col gap-1">

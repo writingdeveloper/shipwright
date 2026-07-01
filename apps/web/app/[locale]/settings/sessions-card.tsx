@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -17,9 +18,21 @@ type SessionItem = {
   readonly current: boolean;
 };
 
-/** Compact "Chrome on Windows"-ish label from a UA string, without a parser dep. */
-function describeAgent(userAgent: string | null): string {
-  if (!userAgent) return "Unknown device";
+/**
+ * Compact "Chrome on Windows"-ish label from a UA string, without a parser dep.
+ * Brand names stay literal; only the fallbacks and the composed label are
+ * translated (passed in by the caller, which holds the next-intl translator).
+ */
+function describeAgent(
+  userAgent: string | null,
+  labels: {
+    readonly unknownDevice: string;
+    readonly browserFallback: string;
+    readonly osUnknown: string;
+    readonly deviceLabel: (browser: string, os: string) => string;
+  },
+): string {
+  if (!userAgent) return labels.unknownDevice;
   const browser = /Firefox\//.test(userAgent)
     ? "Firefox"
     : /Edg\//.test(userAgent)
@@ -28,7 +41,7 @@ function describeAgent(userAgent: string | null): string {
         ? "Chrome"
         : /Safari\//.test(userAgent)
           ? "Safari"
-          : "Browser";
+          : labels.browserFallback;
   const os = /Windows/.test(userAgent)
     ? "Windows"
     : /Mac OS X/.test(userAgent)
@@ -39,8 +52,8 @@ function describeAgent(userAgent: string | null): string {
           ? "iOS"
           : /Linux/.test(userAgent)
             ? "Linux"
-            : "unknown OS";
-  return `${browser} on ${os}`;
+            : labels.osUnknown;
+  return labels.deviceLabel(browser, os);
 }
 
 /**
@@ -49,20 +62,28 @@ function describeAgent(userAgent: string | null): string {
  * intentionally not offered — "everything except here" covers the real
  * use-case (a forgotten library computer) without exposing session tokens.
  */
-export function SessionsCard({
+export async function SessionsCard({
   sessions,
 }: {
   sessions: readonly SessionItem[];
 }) {
   const others = sessions.filter((s) => !s.current).length;
+  const t = await getTranslations("settings.sessions");
+  const labels = {
+    unknownDevice: t("unknownDevice"),
+    browserFallback: t("browserFallback"),
+    osUnknown: t("osUnknown"),
+    deviceLabel: (browser: string, os: string) =>
+      t("deviceLabel", { browser, os }),
+  };
 
   return (
     <Card data-testid="sessions-card">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Sessions</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
-        <CardDescription>Where your account is signed in.</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <ul className="flex flex-col gap-2" data-testid="sessions-list">
@@ -72,20 +93,24 @@ export function SessionsCard({
               className="flex flex-wrap items-center justify-between gap-2 text-sm"
             >
               <span className="text-foreground">
-                {describeAgent(s.userAgent)}
+                {describeAgent(s.userAgent, labels)}
                 {s.current ? (
-                  <span className="text-muted-foreground"> — this device</span>
+                  <span className="text-muted-foreground">
+                    {t("currentDevice")}
+                  </span>
                 ) : null}
               </span>
               <span className="text-muted-foreground">
-                since {new Date(s.createdAt).toLocaleDateString("en-US")}
+                {t("since", {
+                  date: new Date(s.createdAt).toLocaleDateString("en-US"),
+                })}
               </span>
             </li>
           ))}
         </ul>
         <form action={revokeOtherSessions}>
           <Button type="submit" variant="outline" disabled={others === 0}>
-            Sign out other sessions{others > 0 ? ` (${others})` : ""}
+            {others > 0 ? t("revokeWithCount", { count: others }) : t("revoke")}
           </Button>
         </form>
       </CardContent>

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { isBillingConfigured } from "@repo/payments";
 import {
   Card,
@@ -17,7 +18,7 @@ import { UpgradeButton } from "./upgrade-button";
  * surfaces the Stripe redirect outcome (`?checkout=success|cancelled|error`);
  * `billing` surfaces a failed portal open (`?billing=portal-error`).
  */
-export function BillingCard({
+export async function BillingCard({
   pro,
   hasBillingAccount,
   checkout,
@@ -29,37 +30,36 @@ export function BillingCard({
   checkout?: string;
   billing?: string;
 }) {
+  const t = await getTranslations("dashboard.billing");
   const billingConfigured = isBillingConfigured();
 
   return (
     <Card data-testid="billing-card">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Billing</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
         <CardDescription>
-          {pro
-            ? "You're on the Pro plan. Thanks for your support!"
-            : "Upgrade to Pro to support development."}
+          {pro ? t("descriptionPro") : t("descriptionFree")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {billing === "portal-error" ? (
           <p role="alert" className="text-destructive mb-3 text-sm">
-            We couldn&apos;t open the billing portal. Please try again.
+            {t("portalError")}
           </p>
         ) : null}
         {checkout === "success" ? (
           <p role="status" className="text-foreground mb-3 text-sm">
-            Payment received — your Pro access activates momentarily.
+            {t("checkoutSuccess")}
           </p>
         ) : checkout === "cancelled" ? (
           <p role="status" className="text-muted-foreground mb-3 text-sm">
-            Checkout cancelled — no charge was made.
+            {t("checkoutCancelled")}
           </p>
         ) : checkout === "error" ? (
           <p role="alert" className="text-destructive mb-3 text-sm">
-            We couldn&apos;t start checkout. Please try again.
+            {t("checkoutError")}
           </p>
         ) : null}
         {pro ? (
@@ -68,7 +68,7 @@ export function BillingCard({
               data-testid="billing-pro-note"
               className="text-muted-foreground text-sm"
             >
-              Your Pro subscription is active.
+              {t("statusActive")}
             </p>
             {billingConfigured && hasBillingAccount ? (
               // Self-serve billing: cancel / payment method / invoices via
@@ -84,7 +84,7 @@ export function BillingCard({
             data-testid="billing-not-configured"
             className="text-muted-foreground text-sm"
           >
-            Billing not configured.
+            {t("notConfigured")}
           </p>
         )}
       </CardContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "../../../i18n/navigation";
 import { defaultLocale } from "../../../i18n/routing";
 import { authClient } from "@repo/auth/client";
@@ -18,6 +18,8 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth.forgotPassword");
+  const tNav = useTranslations("nav");
   const locale = useLocale();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export default function ForgotPasswordPage() {
     setPending(false);
 
     if (error) {
-      setError(error.message ?? "Something went wrong. Please try again.");
+      setError(error.message ?? t("error"));
       return;
     }
     setSent(true);
@@ -53,30 +55,27 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>Forgot your password?</h1>
+            <h1>{t("title")}</h1>
           </CardTitle>
-          <CardDescription>
-            Enter your email and we&apos;ll send a reset link.
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         {sent ? (
           <CardContent>
             <p className="text-sm" role="status">
-              If an account exists for {email}, a reset link is on its way — check
-              your inbox.
+              {t("success", { email })}
             </p>
           </CardContent>
         ) : (
           <form onSubmit={onSubmit}>
             <CardContent className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("emailLabel")}</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                   required
                   autoFocus
                   value={email}
@@ -97,12 +96,12 @@ export default function ForgotPasswordPage() {
             </CardContent>
             <CardFooter className="mt-6 flex flex-col gap-4">
               <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "Sending…" : "Send reset link"}
+                {pending ? t("submitLoading") : t("submit")}
               </Button>
               <p className="text-muted-foreground text-sm">
-                Remembered it?{" "}
+                {t("remembered")}{" "}
                 <Link href="/sign-in" className="text-primary hover:underline">
-                  Sign in
+                  {tNav("signIn")}
                 </Link>
               </p>
             </CardFooter>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { logger } from "@repo/observability/logger";
 import { Button } from "@repo/ui/components/ui/button";
 
@@ -16,6 +17,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errors.unexpected");
+
   useEffect(() => {
     // Single report path: @repo/observability's logger forwards an `error`-level
     // log (with the Error in `meta.error`) to Sentry when a DSN is configured.
@@ -28,13 +31,9 @@ export default function Error({
       id="main"
       className="bg-background flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center"
     >
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Something went wrong
-      </h1>
-      <p className="text-muted-foreground max-w-sm text-sm">
-        An unexpected error occurred. You can try again.
-      </p>
-      <Button onClick={reset}>Try again</Button>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <p className="text-muted-foreground max-w-sm text-sm">{t("message")}</p>
+      <Button onClick={reset}>{t("action")}</Button>
     </main>
   );
 }

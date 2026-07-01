@@ -1,12 +1,17 @@
 {
   "home": {
     "tagline": "A per-user Tasks app. Create an account or sign in to reach your dashboard.",
-    "body": "Auth and the database foundation are wired up with Better Auth and Drizzle (libSQL). The protected dashboard proves server-side auth gating."
+    "body": "Auth and the database foundation are wired up with Better Auth and Drizzle (libSQL). The protected dashboard proves server-side auth gating.",
+    "title": "Shipwright"
   },
   "nav": {
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "backHome": "Back home",
+    "backHomeArrow": "← Back home",
+    "backToDashboard": "Back to dashboard"
   },
   "footer": {
     "privacy": "Privacy",
@@ -19,5 +24,215 @@
   },
   "layout": {
     "skipToContent": "Skip to content"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Welcome back",
+      "description": "Sign in to your account with your email and password.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitLoading": "Signing in…",
+      "noAccount": "Don't have an account?",
+      "invalidCredentials": "Invalid email or password."
+    },
+    "signUp": {
+      "title": "Create your account",
+      "description": "Sign up with your email and a password to get started.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Ada Lovelace",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "submit": "Create account",
+      "submitLoading": "Creating account…",
+      "hasAccount": "Already have an account?",
+      "error": "Something went wrong. Please try again."
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "description": "Enter your email and we'll send a reset link.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send reset link",
+      "submitLoading": "Sending…",
+      "remembered": "Remembered it?",
+      "success": "If an account exists for {email}, a reset link is on its way — check your inbox.",
+      "error": "Something went wrong. Please try again."
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "description": "Choose a new password for your account.",
+      "passwordLabel": "New password",
+      "passwordPlaceholder": "At least 8 characters",
+      "invalidLink": "This reset link is invalid or has expired.",
+      "requestNew": "Request a new one",
+      "submit": "Reset password",
+      "submitLoading": "Saving…",
+      "error": "Couldn't reset your password. Try the link again."
+    },
+    "social": {
+      "continueWith": "Continue with {provider}",
+      "error": "Couldn't sign in with {provider}.",
+      "divider": "or"
+    },
+    "passwordInput": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "signOut": {
+      "label": "Sign out",
+      "loading": "Signing out…"
+    }
+  },
+  "dashboard": {
+    "title": "Tasks",
+    "signedInAs": "Signed in as",
+    "proBadge": "Pro",
+    "addTask": {
+      "heading": "Add a task",
+      "description": "Capture something you need to get done.",
+      "label": "Task title",
+      "placeholder": "e.g. Ship the tasks feature",
+      "submit": "Add",
+      "submitLoading": "Adding…",
+      "errorEmpty": "Please enter a task title.",
+      "errorTooLong": "Title must be at most {max} characters.",
+      "errorRateLimit": "Too many requests — please wait a moment and try again."
+    },
+    "tasks": {
+      "heading": "Your tasks",
+      "statusEmpty": "Nothing here yet.",
+      "statusCount": "{completed} of {total} done",
+      "emptyHeading": "No tasks yet",
+      "emptyMessage": "Add your first task using the form above.",
+      "deleteAriaLabel": "Delete \"{title}\"",
+      "markDone": "Mark \"{title}\" as done",
+      "markNotDone": "Mark \"{title}\" as not done"
+    },
+    "billing": {
+      "heading": "Billing",
+      "descriptionPro": "You're on the Pro plan. Thanks for your support!",
+      "descriptionFree": "Upgrade to Pro to support development.",
+      "statusActive": "Your Pro subscription is active.",
+      "notConfigured": "Billing not configured.",
+      "checkoutSuccess": "Payment received — your Pro access activates momentarily.",
+      "checkoutCancelled": "Checkout cancelled — no charge was made.",
+      "checkoutError": "We couldn't start checkout. Please try again.",
+      "portalError": "We couldn't open the billing portal. Please try again.",
+      "upgrade": "Upgrade to Pro",
+      "upgradeLoading": "Redirecting…",
+      "manage": "Manage billing",
+      "manageLoading": "Opening…"
+    },
+    "notifications": {
+      "heading": "Notifications",
+      "descriptionEnabled": "Enable web push to get notified on this device.",
+      "descriptionDisabled": "Push not configured.",
+      "configNote": "Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable web push.",
+      "enable": "Enable notifications",
+      "disable": "Disable notifications",
+      "test": "Send test notification",
+      "errorEnable": "Couldn't enable notifications (permission denied or unsupported).",
+      "errorEnableRetry": "Couldn't enable notifications. Please try again.",
+      "errorDisable": "Couldn't disable notifications. Please try again.",
+      "errorTest": "Couldn't send the test notification. Please try again.",
+      "testTitle": "Test notification",
+      "testBody": "Push notifications are working 🎉"
+    },
+    "files": {
+      "heading": "Files",
+      "statusNotConfigured": "Storage not configured.",
+      "statusEmpty": "No files yet.",
+      "statusCount": "{count} file(s)",
+      "emptyHeading": "No files yet",
+      "emptyMessage": "Upload your first file using the button above.",
+      "configNote": "Set S3_ENDPOINT, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY and S3_BUCKET to enable file uploads.",
+      "uploadLabel": "Choose a file to upload",
+      "upload": "Upload a file",
+      "uploadLoading": "Uploading…",
+      "errorTooLarge": "File is too large (max 10 MB).",
+      "errorRateLimit": "Too many uploads — try again in a minute.",
+      "errorNotConfigured": "Storage is not configured",
+      "errorUpload": "Upload failed. Please try again.",
+      "errorUploadStatus": "Upload failed ({status}).",
+      "deleteAriaLabel": "Delete \"{name}\""
+    },
+    "trpc": {
+      "heading": "Tasks (via tRPC)",
+      "description": "Read through the @repo/api tRPC client (opt-in, alongside Server Actions).",
+      "loading": "Loading…",
+      "error": "Failed to load.",
+      "statusCount": "{count} task(s) loaded over tRPC."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "manageAccount": "Manage your account:",
+    "profile": {
+      "heading": "Profile",
+      "description": "How you appear across the app.",
+      "nameLabel": "Name",
+      "submit": "Save name",
+      "submitLoading": "Saving…",
+      "success": "Name updated.",
+      "error": "Could not update your name.",
+      "errorValidation": "Please enter a name (at most {max} characters)."
+    },
+    "password": {
+      "heading": "Password",
+      "description": "Changing your password signs you out everywhere else.",
+      "currentLabel": "Current password",
+      "newLabel": "New password",
+      "success": "Password changed.",
+      "submit": "Change password",
+      "submitLoading": "Changing…",
+      "errorEmpty": "Please fill in both password fields.",
+      "errorTooShort": "New password must be at least 8 characters.",
+      "errorIncorrect": "Current password is incorrect."
+    },
+    "sessions": {
+      "heading": "Sessions",
+      "description": "Where your account is signed in.",
+      "unknownDevice": "Unknown device",
+      "browserFallback": "Browser",
+      "osUnknown": "unknown OS",
+      "deviceLabel": "{browser} on {os}",
+      "currentDevice": " — this device",
+      "since": "since {date}",
+      "revoke": "Sign out other sessions",
+      "revokeWithCount": "Sign out other sessions ({count})"
+    },
+    "danger": {
+      "heading": "Delete account",
+      "description": "Permanently removes your account, tasks, files, push subscriptions, and cancels any active subscription. This cannot be undone.",
+      "passwordLabel": "Confirm with your password",
+      "reveal": "Delete account…",
+      "submit": "Permanently delete my account",
+      "submitLoading": "Deleting…",
+      "cancel": "Cancel",
+      "errorEmpty": "Please enter your password to confirm deletion.",
+      "errorIncorrect": "Password is incorrect.",
+      "errorRateLimit": "Too many requests — please wait a moment and try again."
+    }
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "message": "We couldn't find that page.",
+      "action": "Back home"
+    },
+    "unexpected": {
+      "title": "Something went wrong",
+      "message": "An unexpected error occurred. You can try again.",
+      "action": "Try again"
+    },
+    "offline": {
+      "title": "You're offline",
+      "message": "This page isn't available without a connection. Reconnect and try again — your previously loaded pages still work."
+    }
   }
 }

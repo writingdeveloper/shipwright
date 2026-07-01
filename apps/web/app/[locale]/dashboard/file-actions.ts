@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db, desc, ownedBy, ownedRow, uploadedFile } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 import {
@@ -54,18 +55,19 @@ export async function requestUploadUrl(
   size: number,
 ): Promise<UploadTicket> {
   const userId = await requireUserId();
+  const t = await getTranslations("dashboard.files");
   // Rate-limit the mint (each ticket permits a 10 MB PUT, so this caps upload
   // bandwidth per user). Thrown so the upload UI surfaces the reason inline,
   // exactly like the size/config errors below. `saveFileRecord` is not limited:
   // it is already bounded by the tickets minted here.
   if (!(await allowAction("file", userId))) {
-    throw new Error("Too many uploads — try again in a minute.");
+    throw new Error(t("errorRateLimit"));
   }
   if (!isStorageConfigured()) {
-    throw new Error("Storage is not configured");
+    throw new Error(t("errorNotConfigured"));
   }
   if (typeof size === "number" && size > MAX_FILE_BYTES) {
-    throw new Error("File is too large (max 10 MB).");
+    throw new Error(t("errorTooLarge"));
   }
   const key = `${userId}/${crypto.randomUUID()}-${safeName(name)}`;
   const url = await createPresignedUploadUrl({

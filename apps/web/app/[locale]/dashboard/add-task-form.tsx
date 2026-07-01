@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
 
@@ -20,6 +21,7 @@ const INITIAL_STATE: CreateTaskState = { status: "idle" };
  * signal.
  */
 export function AddTaskForm() {
+  const t = useTranslations("dashboard.addTask");
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(
     createTask,
@@ -38,12 +40,12 @@ export function AddTaskForm() {
     <form ref={formRef} action={formAction} className="flex items-start gap-2">
       <div className="flex-1">
         <label htmlFor="task-title" className="sr-only">
-          Task title
+          {t("label")}
         </label>
         <Input
           id="task-title"
           name="title"
-          placeholder="e.g. Ship the tasks feature"
+          placeholder={t("placeholder")}
           autoComplete="off"
           maxLength={280}
           required
@@ -62,7 +64,7 @@ export function AddTaskForm() {
         ) : null}
       </div>
       <Button type="submit" disabled={pending}>
-        {pending ? "Adding…" : "Add"}
+        {pending ? t("submitLoading") : t("submit")}
       </Button>
     </form>
   );

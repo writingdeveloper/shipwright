@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db, ownedRow, sql, task } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 
@@ -22,13 +23,14 @@ export async function createTask(
   formData: FormData,
 ): Promise<CreateTaskState> {
   const userId = await requireUserId();
+  const t = await getTranslations("dashboard.addTask");
 
   // Per-user rate limit (blocks scripted spam, not humans) — surfaced inline
   // like a validation error so the form is never silently swallowed.
   if (!(await allowAction("task", userId))) {
     return {
       status: "error",
-      message: "Too many requests — please wait a moment and try again.",
+      message: t("errorRateLimit"),
     };
   }
 
@@ -44,8 +46,8 @@ export async function createTask(
       status: "error",
       message:
         trimmedLength > MAX_TITLE_LENGTH
-          ? `Title must be at most ${MAX_TITLE_LENGTH} characters.`
-          : "Please enter a task title.",
+          ? t("errorTooLong", { max: MAX_TITLE_LENGTH })
+          : t("errorEmpty"),
     };
   }
 

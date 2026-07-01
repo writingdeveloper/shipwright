@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link, useRouter } from "../../../i18n/navigation";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
@@ -19,6 +20,8 @@ import { PasswordInput } from "../../../components/password-input";
 import { SocialSignIn } from "../../../components/social-sign-in";
 
 export function SignUpForm() {
+  const t = useTranslations("auth.signUp");
+  const tNav = useTranslations("nav");
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,7 +43,7 @@ export function SignUpForm() {
     setPending(false);
 
     if (error) {
-      setError(error.message ?? "Something went wrong. Please try again.");
+      setError(error.message ?? t("error"));
       // Move focus to the first field so the keyboard/SR user lands on what to
       // fix, not on the (now re-enabled) submit button.
       document.getElementById("email")?.focus();
@@ -56,23 +59,21 @@ export function SignUpForm() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>Create your account</h1>
+            <h1>{t("title")}</h1>
           </CardTitle>
-          <CardDescription>
-            Sign up with your email and a password to get started.
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
           <CardContent className="flex flex-col gap-4">
             <SocialSignIn />
             <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t("nameLabel")}</Label>
               <Input
                 id="name"
                 name="name"
                 type="text"
                 autoComplete="name"
-                placeholder="Ada Lovelace"
+                placeholder={t("namePlaceholder")}
                 required
                 autoFocus
                 value={name}
@@ -80,13 +81,13 @@ export function SignUpForm() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("emailLabel")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -95,12 +96,12 @@ export function SignUpForm() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("passwordLabel")}</Label>
               <PasswordInput
                 id="password"
                 name="password"
                 autoComplete="new-password"
-                placeholder="At least 8 characters"
+                placeholder={t("passwordPlaceholder")}
                 minLength={8}
                 required
                 value={password}
@@ -121,12 +122,12 @@ export function SignUpForm() {
           </CardContent>
           <CardFooter className="mt-6 flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Creating account…" : "Create account"}
+              {pending ? t("submitLoading") : t("submit")}
             </Button>
             <p className="text-muted-foreground text-sm">
-              Already have an account?{" "}
+              {t("hasAccount")}{" "}
               <Link href="/sign-in" className="text-primary hover:underline">
-                Sign in
+                {tNav("signIn")}
               </Link>
             </p>
           </CardFooter>

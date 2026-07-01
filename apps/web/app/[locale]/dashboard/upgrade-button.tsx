@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 
 import { startCheckout } from "./billing-actions";
@@ -14,9 +15,10 @@ import { startCheckout } from "./billing-actions";
  */
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const t = useTranslations("dashboard.billing");
   return (
     <Button type="submit" disabled={pending} aria-busy={pending}>
-      {pending ? "Redirecting…" : "Upgrade to Pro"}
+      {pending ? t("upgradeLoading") : t("upgrade")}
     </Button>
   );
 }

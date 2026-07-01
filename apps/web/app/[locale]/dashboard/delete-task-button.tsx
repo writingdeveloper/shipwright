@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 
 import { deleteTask } from "./actions";
@@ -14,6 +15,7 @@ import { deleteTask } from "./actions";
  * total, so the post-delete context is both focused and spoken.
  */
 export function DeleteTaskButton({ id, title }: { id: string; title: string }) {
+  const t = useTranslations("dashboard.tasks");
   return (
     <form action={deleteTask}>
       <input type="hidden" name="id" value={id} />
@@ -22,7 +24,7 @@ export function DeleteTaskButton({ id, title }: { id: string; title: string }) {
         variant="ghost"
         size="icon"
         className="text-muted-foreground hover:text-destructive"
-        aria-label={`Delete "${title}"`}
+        aria-label={t("deleteAriaLabel", { title })}
         onClick={() => {
           // Fires before submit + the row's unmount on revalidate, so focus
           // lands on the heading instead of falling back to <body>.

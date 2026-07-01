@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "../i18n/navigation";
 import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/ui/button";
 
 export function SignOutButton() {
+  const t = useTranslations("auth.signOut");
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -23,7 +25,7 @@ export function SignOutButton() {
       disabled={pending}
       aria-busy={pending}
     >
-      {pending ? "Signing out…" : "Sign out"}
+      {pending ? t("loading") : t("label")}
     </Button>
   );
 }

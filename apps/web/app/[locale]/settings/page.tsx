@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { auth } from "@repo/auth/server";
 import { Button } from "@repo/ui/components/ui/button";
 
@@ -20,10 +20,12 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<{ changed?: string }>;
 }) {
-  const [session, locale, { changed }] = await Promise.all([
+  const [session, locale, { changed }, t, tNav] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getLocale(),
     searchParams,
+    getTranslations("settings"),
+    getTranslations("nav"),
   ]);
 
   if (!session) {
@@ -40,16 +42,18 @@ export default async function SettingsPage({
       <div className="flex w-full max-w-2xl flex-col gap-6 py-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("title")}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Manage your account:{" "}
+              {t("manageAccount")}{" "}
               <span className="text-foreground font-medium">
                 {authed.user.email}
               </span>
             </p>
           </div>
           <Button asChild variant="outline">
-            <Link href="/dashboard">Back to dashboard</Link>
+            <Link href="/dashboard">{tNav("backToDashboard")}</Link>
           </Button>
         </header>
 

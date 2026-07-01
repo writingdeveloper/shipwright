@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -19,19 +20,20 @@ const IDLE: SettingsActionState = { status: "idle" };
 /** Display-name form. Inline success/error via `useActionState`. */
 export function ProfileCard({ initialName }: { initialName: string }) {
   const [state, formAction, pending] = useActionState(updateName, IDLE);
+  const t = useTranslations("settings.profile");
 
   return (
     <Card data-testid="profile-card">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Profile</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
-        <CardDescription>How you appear across the app.</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="settings-name">Name</Label>
+            <Label htmlFor="settings-name">{t("nameLabel")}</Label>
             <Input
               id="settings-name"
               name="name"
@@ -57,7 +59,7 @@ export function ProfileCard({ initialName }: { initialName: string }) {
           ) : null}
           <div>
             <Button type="submit" disabled={pending} aria-busy={pending}>
-              {pending ? "Saving…" : "Save name"}
+              {pending ? t("submitLoading") : t("submit")}
             </Button>
           </div>
         </form>

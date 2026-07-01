@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -27,21 +28,20 @@ const IDLE: SettingsActionState = { status: "idle" };
  */
 export function PasswordCard({ justChanged = false }: { justChanged?: boolean }) {
   const [state, formAction, pending] = useActionState(changePassword, IDLE);
+  const t = useTranslations("settings.password");
 
   return (
     <Card data-testid="password-card">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Password</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
-        <CardDescription>
-          Changing your password signs you out everywhere else.
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="current-password">Current password</Label>
+            <Label htmlFor="current-password">{t("currentLabel")}</Label>
             <PasswordInput
               id="current-password"
               name="currentPassword"
@@ -50,7 +50,7 @@ export function PasswordCard({ justChanged = false }: { justChanged?: boolean })
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="new-password">New password</Label>
+            <Label htmlFor="new-password">{t("newLabel")}</Label>
             <PasswordInput
               id="new-password"
               name="newPassword"
@@ -61,7 +61,7 @@ export function PasswordCard({ justChanged = false }: { justChanged?: boolean })
           </div>
           {justChanged && state.status === "idle" ? (
             <p role="status" className="text-foreground text-sm">
-              Password changed.
+              {t("success")}
             </p>
           ) : state.message ? (
             <p
@@ -77,7 +77,7 @@ export function PasswordCard({ justChanged = false }: { justChanged?: boolean })
           ) : null}
           <div>
             <Button type="submit" disabled={pending} aria-busy={pending}>
-              {pending ? "Changing…" : "Change password"}
+              {pending ? t("submitLoading") : t("submit")}
             </Button>
           </div>
         </form>

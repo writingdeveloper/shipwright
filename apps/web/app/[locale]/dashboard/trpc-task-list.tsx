@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useTRPC } from "@repo/api/client";
 import {
   Card,
@@ -16,6 +17,7 @@ import {
  * above are unchanged — this just shows the type-safe client-query pattern.
  */
 export function TrpcTaskList() {
+  const t = useTranslations("dashboard.trpc");
   const trpc = useTRPC();
   // Refetch on every mount so the card reflects tasks created via Server Actions
   // (which mutate the DB but don't touch this React Query cache) whenever you
@@ -30,21 +32,18 @@ export function TrpcTaskList() {
     <Card data-testid="trpc-task-card">
       <CardHeader>
         <CardTitle asChild>
-          <h2>Tasks (via tRPC)</h2>
+          <h2>{t("heading")}</h2>
         </CardTitle>
-        <CardDescription>
-          Read through the @repo/api tRPC client (opt-in, alongside Server
-          Actions).
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent role="status" aria-live="polite">
         {taskQuery.isPending ? (
-          <p className="text-muted-foreground text-sm">Loading…</p>
+          <p className="text-muted-foreground text-sm">{t("loading")}</p>
         ) : taskQuery.isError ? (
-          <p className="text-destructive text-sm">Failed to load.</p>
+          <p className="text-destructive text-sm">{t("error")}</p>
         ) : (
           <p className="text-sm" data-testid="trpc-task-count">
-            {taskQuery.data.length} task(s) loaded over tRPC.
+            {t("statusCount", { count: taskQuery.data.length })}
           </p>
         )}
       </CardContent>

@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { auth } from "@repo/auth/server";
 import { Link, redirect } from "../../../i18n/navigation";
 import { getSubscription, isActiveSubscription } from "@repo/payments";
@@ -32,9 +32,11 @@ export default async function DashboardPage({
   searchParams: Promise<{ checkout?: string; billing?: string }>;
 }) {
   // Verify auth in server code (not just middleware) per the repo's rules.
-  const [session, locale] = await Promise.all([
+  const [session, locale, t, tNav] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getLocale(),
+    getTranslations("dashboard"),
+    getTranslations("nav"),
   ]);
 
   if (!session) {
@@ -61,18 +63,20 @@ export default async function DashboardPage({
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {t("title")}
+              </h1>
               {pro ? (
                 <span
                   data-testid="pro-badge"
                   className="bg-primary text-primary-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
                 >
-                  Pro
+                  {t("proBadge")}
                 </span>
               ) : null}
             </div>
             <p className="text-muted-foreground text-sm">
-              Signed in as{" "}
+              {t("signedInAs")}{" "}
               <span className="text-foreground font-medium">
                 {authedSession.user.email}
               </span>
@@ -80,7 +84,7 @@ export default async function DashboardPage({
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="outline">
-              <Link href="/settings">Settings</Link>
+              <Link href="/settings">{tNav("settings")}</Link>
             </Button>
             <SignOutButton />
           </div>
@@ -99,11 +103,9 @@ export default async function DashboardPage({
         <Card>
           <CardHeader>
             <CardTitle asChild>
-              <h2>Add a task</h2>
+              <h2>{t("addTask.heading")}</h2>
             </CardTitle>
-            <CardDescription>
-              Capture something you need to get done.
-            </CardDescription>
+            <CardDescription>{t("addTask.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <AddTaskForm />

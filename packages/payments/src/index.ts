@@ -53,7 +53,14 @@ export {
 } from "./webhook";
 
 export {
+  createBillingPortalSession,
+  type CreateBillingPortalSessionArgs,
+  type CreateBillingPortalSessionResult,
+} from "./portal";
+
+export {
   getSubscription,
+  isActiveSubscription,
   isPro,
   type SubscriptionRecord,
 } from "./subscription";

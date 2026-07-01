@@ -1,5 +1,7 @@
 {
-  "extends": "@repo/typescript-config/base.json",
+  // react-library (not base): @repo/email's templates are .tsx sources this
+  // package's program type-checks transitively, so `jsx` must be set.
+  "extends": "@repo/typescript-config/react-library.json",
   "compilerOptions": {
     "strictNullChecks": true,
     "noEmit": true,

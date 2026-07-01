@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db, ownedRow, sql, task } from "@repo/db";
 import { logger } from "@repo/observability/logger";
 
+import { allowAction } from "../../../lib/action-limits";
 import { requireUserId } from "../../../lib/auth-actions";
 import { MAX_TITLE_LENGTH, normalizeTitle } from "./validation";
 
@@ -21,6 +22,15 @@ export async function createTask(
   formData: FormData,
 ): Promise<CreateTaskState> {
   const userId = await requireUserId();
+
+  // Per-user rate limit (blocks scripted spam, not humans) — surfaced inline
+  // like a validation error so the form is never silently swallowed.
+  if (!(await allowAction("task", userId))) {
+    return {
+      status: "error",
+      message: "Too many requests — please wait a moment and try again.",
+    };
+  }
 
   // Validate via the shared pure helper (non-empty, trimmed, bounded length).
   // Reject junk instead of persisting it, but tell the user WHY (and record the
@@ -56,6 +66,10 @@ export async function createTask(
 export async function toggleTask(formData: FormData): Promise<void> {
   const userId = await requireUserId();
 
+  // Void action: a rate-limited call is a logged no-op (the UI state simply
+  // doesn't change), matching how invalid input is handled below.
+  if (!(await allowAction("task", userId))) return;
+
   const id = formData.get("id");
   if (typeof id !== "string" || id.length === 0) {
     return;
@@ -75,6 +89,8 @@ export async function toggleTask(formData: FormData): Promise<void> {
 
 export async function deleteTask(formData: FormData): Promise<void> {
   const userId = await requireUserId();
+
+  if (!(await allowAction("task", userId))) return;
 
   const id = formData.get("id");
   if (typeof id !== "string" || id.length === 0) {

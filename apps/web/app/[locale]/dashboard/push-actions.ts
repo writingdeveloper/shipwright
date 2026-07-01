@@ -7,11 +7,14 @@ import {
   sendPushToUser,
 } from "@repo/pwa/push/server";
 
+import { allowAction } from "../../../lib/action-limits";
 import { requireUserId } from "../../../lib/auth-actions";
 
 /**
  * Push Server Actions for the dashboard. Auth is verified INSIDE each action
- * (repo rule). Subscriptions are owner-scoped via the resolved userId.
+ * (repo rule). Subscriptions are owner-scoped via the resolved userId, and each
+ * action is per-user rate-limited (a blocked call is a logged no-op — these are
+ * void actions, so that matches how incomplete input is handled).
  */
 
 /** Persist a browser subscription (PushSubscription.toJSON()) for this user. */
@@ -20,6 +23,7 @@ export async function savePushSubscription(subscription: {
   keys?: { p256dh?: string; auth?: string };
 }): Promise<void> {
   const userId = await requireUserId();
+  if (!(await allowAction("push", userId))) return;
   const { endpoint, keys } = subscription;
   if (!endpoint || !keys?.p256dh || !keys?.auth) {
     logger.warn("savePushSubscription: incomplete subscription", { userId });
@@ -36,6 +40,7 @@ export async function savePushSubscription(subscription: {
 /** Remove a subscription by endpoint, scoped to the signed-in owner. */
 export async function removePushSubscription(endpoint: string): Promise<void> {
   const userId = await requireUserId();
+  if (!(await allowAction("push", userId))) return;
   if (!endpoint) return;
   await deleteSubscription(userId, endpoint);
 }
@@ -43,6 +48,9 @@ export async function removePushSubscription(endpoint: string): Promise<void> {
 /** Send a test notification to all of this user's subscriptions. */
 export async function sendTestPush(): Promise<void> {
   const userId = await requireUserId();
+  // The expensive one: each call fans out real network sends, one per saved
+  // subscription — the main thing worth bounding.
+  if (!(await allowAction("push", userId))) return;
   const result = await sendPushToUser(userId, {
     title: "Test notification",
     body: "Push notifications are working 🎉",

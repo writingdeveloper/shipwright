@@ -34,15 +34,16 @@ export async function getSubscription(
 }
 
 /**
- * Whether a user currently has an active ("Pro") subscription.
+ * Whether an already-loaded subscription row grants active ("Pro") access —
+ * the pure half of {@link isPro}, for callers that fetched the row once and
+ * also need other fields (e.g. `stripeCustomerId` for the billing portal).
  *
- * True only when their row exists AND its status is one of the active statuses
- * (`active`/`trialing`) AND the current period has not lapsed. Defaults to
- * `false` for any user with no row — which is everyone when Stripe is
- * unconfigured, so the keyless app/tests/CI see a stable "free" dashboard.
+ * True only when the row exists AND its status is one of the active statuses
+ * (`active`/`trialing`) AND the current period has not lapsed.
  */
-export async function isPro(userId: string): Promise<boolean> {
-  const sub = await getSubscription(userId);
+export function isActiveSubscription(
+  sub: SubscriptionRecord | null,
+): boolean {
   if (!sub || !sub.status || !ACTIVE_STATUSES.has(sub.status)) {
     return false;
   }
@@ -52,4 +53,13 @@ export async function isPro(userId: string): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+/**
+ * Whether a user currently has an active ("Pro") subscription. Defaults to
+ * `false` for any user with no row — which is everyone when Stripe is
+ * unconfigured, so the keyless app/tests/CI see a stable "free" dashboard.
+ */
+export async function isPro(userId: string): Promise<boolean> {
+  return isActiveSubscription(await getSubscription(userId));
 }

@@ -178,3 +178,77 @@ describe("handleWebhookEvent idempotency (real libSQL)", () => {
     expect(await isPro(USER_ID)).toBe(false);
   });
 });
+
+/**
+ * A minimal `invoice.payment_failed` event. `userId` metadata rides on the
+ * invoice's subscription details — under `parent` (2025+ API shapes) or
+ * top-level (`legacyShape`), both of which the handler must tolerate.
+ */
+function invoiceFailedEvent(
+  id: string,
+  opts: { userId?: string | null; legacyShape?: boolean } = {},
+): Stripe.Event {
+  const metadata =
+    opts.userId === null ? {} : { userId: opts.userId ?? USER_ID };
+  const invoice = {
+    id: "in_test_1",
+    object: "invoice",
+    customer: CUSTOMER_ID,
+    // Email unconfigured in tests ⇒ the notify is a skipped no-op; the address
+    // just proves the invoice-first lookup path doesn't hit the DB.
+    customer_email: "sub@example.com",
+    ...(opts.legacyShape
+      ? { subscription_details: { metadata } }
+      : { parent: { subscription_details: { metadata } } }),
+  };
+  return {
+    id,
+    object: "event",
+    type: "invoice.payment_failed",
+    data: { object: invoice as unknown as Stripe.Invoice },
+  } as unknown as Stripe.Event;
+}
+
+describe("invoice.payment_failed (real libSQL, email unconfigured ⇒ skipped send)", () => {
+  it("processes the event WITHOUT touching local subscription state", async () => {
+    const before = await getSubscription(USER_ID);
+
+    const result = await handleWebhookEvent(invoiceFailedEvent("evt_payfail_1"));
+    expect(result).toEqual({
+      status: "processed",
+      eventId: "evt_payfail_1",
+      type: "invoice.payment_failed",
+    });
+
+    // Notification-only: `customer.subscription.updated` owns the state mirror
+    // (handlers must not depend on event order), so the row is UNCHANGED.
+    const after = await getSubscription(USER_ID);
+    expect(after).toEqual(before);
+    expect(await processedCount("evt_payfail_1")).toBe(1);
+  });
+
+  it("is a NO-OP duplicate on re-delivery", async () => {
+    const again = await handleWebhookEvent(invoiceFailedEvent("evt_payfail_1"));
+    expect(again).toEqual({ status: "duplicate", eventId: "evt_payfail_1" });
+    expect(await processedCount("evt_payfail_1")).toBe(1);
+  });
+
+  it("tolerates the legacy top-level subscription_details shape", async () => {
+    const result = await handleWebhookEvent(
+      invoiceFailedEvent("evt_payfail_legacy", { legacyShape: true }),
+    );
+    expect(result.status).toBe("processed");
+  });
+
+  it("ignores (but records) an invoice with no userId metadata", async () => {
+    const result = await handleWebhookEvent(
+      invoiceFailedEvent("evt_payfail_anon", { userId: null }),
+    );
+    expect(result).toEqual({
+      status: "ignored",
+      eventId: "evt_payfail_anon",
+      type: "invoice.payment_failed",
+    });
+    expect(await processedCount("evt_payfail_anon")).toBe(1);
+  });
+});

@@ -3,8 +3,10 @@ import {
   eq,
   ownedBy,
   processedStripeEvent,
+  schema,
   subscription as subscriptionTable,
 } from "@repo/db";
+import { sendPaymentFailedEmail } from "@repo/email";
 import { env } from "@repo/env";
 import { logger } from "@repo/observability/logger";
 
@@ -27,8 +29,8 @@ import { getStripe, type Stripe } from "./client";
  *     duplicates are normal. We dedupe by `event.id`: if it is already in
  *     `processed_stripe_event` we no-op; otherwise we apply the effect and
  *     record the id. Only a handful of event types matter
- *     (`checkout.session.completed`, `customer.subscription.updated/deleted`);
- *     everything else is acknowledged and ignored.
+ *     (`checkout.session.completed`, `customer.subscription.updated/deleted`,
+ *     `invoice.payment_failed`); everything else is acknowledged and ignored.
  */
 
 /** Outcome of {@link handleWebhookEvent}, for logging/observability. */
@@ -119,6 +121,62 @@ function userIdFrom(
   },
 ): string | null {
   return source.metadata?.userId ?? source.client_reference_id ?? null;
+}
+
+/**
+ * Resolve our user id from an Invoice's subscription metadata (Checkout stamps
+ * `userId` onto the subscription via `subscription_data.metadata`, and Stripe
+ * copies it onto each invoice's subscription details). Like {@link periodEndMs},
+ * tolerate both API shapes: `subscription_details` was top-level before the
+ * 2025 API versions moved it under `parent`.
+ */
+function invoiceUserId(invoice: Stripe.Invoice): string | null {
+  const record = invoice as unknown as {
+    subscription_details?: { metadata?: { userId?: string } | null } | null;
+    parent?: {
+      subscription_details?: { metadata?: { userId?: string } | null } | null;
+    } | null;
+  };
+  return (
+    record.subscription_details?.metadata?.userId ??
+    record.parent?.subscription_details?.metadata?.userId ??
+    null
+  );
+}
+
+/**
+ * Notify a user their renewal charge failed, so they can fix the payment
+ * method before dunning cancels the subscription. Best-effort: the address
+ * comes from the invoice (falling back to our user row), the send no-ops
+ * without Resend config, and no local subscription state is touched here —
+ * `customer.subscription.updated` is the authoritative mirror of whatever
+ * status Stripe transitions to, and handlers must not depend on event order.
+ */
+async function notifyPaymentFailed(
+  userId: string,
+  invoice: Stripe.Invoice,
+): Promise<void> {
+  let to = invoice.customer_email ?? null;
+  if (!to) {
+    const [row] = await db
+      .select({ email: schema.user.email })
+      .from(schema.user)
+      .where(eq(schema.user.id, userId))
+      .limit(1);
+    to = row?.email ?? null;
+  }
+  if (!to) {
+    logger.warn("[@repo/payments] payment_failed: no email for user", {
+      userId,
+    });
+    return;
+  }
+
+  // BETTER_AUTH_URL is required in a real deployment; the localhost fallback
+  // only exists for SKIP_ENV_VALIDATION contexts (unit tests) where it's unset.
+  const appUrl =
+    env.NEXT_PUBLIC_APP_URL ?? env.BETTER_AUTH_URL ?? "http://localhost:3000";
+  await sendPaymentFailedEmail({ to, billingUrl: `${appUrl}/dashboard` });
 }
 
 /**
@@ -250,6 +308,25 @@ export async function handleWebhookEvent(
       if (userId) {
         await markSubscriptionCanceled(userId, sub);
         handled = true;
+      }
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      // A renewal charge bounced. Stripe retries per its dunning schedule and
+      // emits `customer.subscription.updated` for any status transition (which
+      // the case above mirrors) — our job here is the user-facing half: tell
+      // the customer so they can fix the card before the subscription lapses.
+      const invoice = event.data.object;
+      const userId = invoiceUserId(invoice);
+      if (userId) {
+        await notifyPaymentFailed(userId, invoice);
+        handled = true;
+      } else {
+        logger.warn(
+          "[@repo/payments] invoice.payment_failed missing userId metadata",
+          { eventId: event.id },
+        );
       }
       break;
     }

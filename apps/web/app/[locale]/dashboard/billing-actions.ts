@@ -4,8 +4,12 @@ import { redirect as nextRedirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { logger } from "@repo/observability/logger";
 import { redirect } from "../../../i18n/navigation";
-import { createCheckoutSession } from "@repo/payments";
+import {
+  createBillingPortalSession,
+  createCheckoutSession,
+} from "@repo/payments";
 
+import { allowAction } from "../../../lib/action-limits";
 import { requireSession } from "../../../lib/auth-actions";
 import { env } from "../../../env";
 
@@ -29,6 +33,12 @@ import { env } from "../../../env";
  */
 export async function startCheckout(): Promise<void> {
   const session = await requireSession();
+
+  // Each call creates a real Stripe session — rate-limit per user. A blocked
+  // call bounces back to the dashboard (logged); 5/min never blocks a human.
+  if (!(await allowAction("billing", session.user.id))) {
+    redirect({ href: "/dashboard", locale: await getLocale() });
+  }
 
   const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -63,4 +73,46 @@ export async function startCheckout(): Promise<void> {
   // external URL — use next/navigation directly since it's not an internal route).
   const configuredResult = result as { readonly configured: true; readonly url: string };
   nextRedirect(configuredResult.url);
+}
+
+/**
+ * Billing Server Action: open Stripe's hosted Billing Portal (cancel, change
+ * payment method, view invoices) for the signed-in user. Same contract as
+ * {@link startCheckout}: auth verified inside, per-user rate limit, graceful
+ * degrade to a dashboard redirect (`?billing=portal-error`) instead of a 500 —
+ * the button is only rendered for a Pro with a Stripe customer, so the error
+ * path is defence-in-depth for a stale page.
+ */
+export async function openBillingPortal(): Promise<void> {
+  const session = await requireSession();
+
+  if (!(await allowAction("billing", session.user.id))) {
+    redirect({ href: "/dashboard", locale: await getLocale() });
+  }
+
+  const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+  const result = await createBillingPortalSession({
+    userId: session.user.id,
+    returnUrl: `${appUrl}/dashboard`,
+  });
+
+  const locale = await getLocale();
+
+  if (!result.configured) {
+    logger.warn("openBillingPortal: billing not configured", {
+      reason: result.reason,
+    });
+    redirect({ href: "/dashboard", locale });
+  }
+
+  if ("error" in result) {
+    logger.error("openBillingPortal: failed to create portal session", {
+      error: result.error,
+    });
+    redirect({ href: "/dashboard?billing=portal-error", locale });
+  }
+
+  const configured = result as { readonly configured: true; readonly url: string };
+  nextRedirect(configured.url);
 }

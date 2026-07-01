@@ -31,9 +31,15 @@ export {
 export { VerifyEmail, type VerifyEmailProps } from "./verify-email";
 
 export {
+  PaymentFailedEmail,
+  type PaymentFailedEmailProps,
+} from "./payment-failed-email";
+
+export {
   sendEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
+  sendPaymentFailedEmail,
   sendVerificationEmail,
   type SendResult,
   type SendEmailArgs,

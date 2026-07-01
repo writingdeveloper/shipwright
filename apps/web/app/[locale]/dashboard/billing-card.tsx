@@ -7,20 +7,27 @@ import {
   CardTitle,
 } from "@repo/ui/components/ui/card";
 
+import { ManageBillingButton } from "./manage-billing-button";
 import { UpgradeButton } from "./upgrade-button";
 
 /**
- * Billing card. `pro` is passed down from the page (which already reads it for
- * the header Pro badge — avoiding a duplicate isPro query); `billingConfigured`
- * is read here. `checkout` surfaces the Stripe redirect outcome
- * (`?checkout=success|cancelled|error`).
+ * Billing card. `pro` and `hasBillingAccount` are passed down from the page
+ * (which already loads the subscription once for the header Pro badge —
+ * avoiding a duplicate query); `billingConfigured` is read here. `checkout`
+ * surfaces the Stripe redirect outcome (`?checkout=success|cancelled|error`);
+ * `billing` surfaces a failed portal open (`?billing=portal-error`).
  */
 export function BillingCard({
   pro,
+  hasBillingAccount,
   checkout,
+  billing,
 }: {
   pro: boolean;
+  /** Whether the user's subscription row carries a Stripe customer id. */
+  hasBillingAccount: boolean;
   checkout?: string;
+  billing?: string;
 }) {
   const billingConfigured = isBillingConfigured();
 
@@ -37,6 +44,11 @@ export function BillingCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {billing === "portal-error" ? (
+          <p role="alert" className="text-destructive mb-3 text-sm">
+            We couldn&apos;t open the billing portal. Please try again.
+          </p>
+        ) : null}
         {checkout === "success" ? (
           <p role="status" className="text-foreground mb-3 text-sm">
             Payment received — your Pro access activates momentarily.
@@ -51,12 +63,20 @@ export function BillingCard({
           </p>
         ) : null}
         {pro ? (
-          <p
-            data-testid="billing-pro-note"
-            className="text-muted-foreground text-sm"
-          >
-            Your Pro subscription is active.
-          </p>
+          <div className="flex flex-col gap-3">
+            <p
+              data-testid="billing-pro-note"
+              className="text-muted-foreground text-sm"
+            >
+              Your Pro subscription is active.
+            </p>
+            {billingConfigured && hasBillingAccount ? (
+              // Self-serve billing: cancel / payment method / invoices via
+              // Stripe's hosted portal. Hidden for a comped Pro (no Stripe
+              // customer) and for the keyless app/tests/CI.
+              <ManageBillingButton />
+            ) : null}
+          </div>
         ) : billingConfigured ? (
           <UpgradeButton />
         ) : (

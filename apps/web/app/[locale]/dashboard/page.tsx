@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { auth } from "@repo/auth/server";
 import { redirect } from "../../../i18n/navigation";
-import { isPro } from "@repo/payments";
+import { getSubscription, isActiveSubscription } from "@repo/payments";
 import {
   Card,
   CardContent,
@@ -28,7 +28,7 @@ import { TrpcTaskList } from "./trpc-task-list";
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; billing?: string }>;
 }) {
   // Verify auth in server code (not just middleware) per the repo's rules.
   const [session, locale] = await Promise.all([
@@ -43,12 +43,16 @@ export default async function DashboardPage({
   const authedSession = session!;
   const userId = authedSession.user.id;
 
-  // Read once for the header Pro badge; passed to BillingCard to avoid a second
-  // isPro query. Pure DB read — works with no Stripe keys (everyone is "free").
-  const pro = await isPro(userId);
+  // Load the subscription ONCE: `pro` drives the header badge, and the Stripe
+  // customer id decides whether the billing card offers the portal. Pure DB
+  // read — works with no Stripe keys (everyone is "free", no customer).
+  const subscription = await getSubscription(userId);
+  const pro = isActiveSubscription(subscription);
+  const hasBillingAccount = Boolean(subscription?.stripeCustomerId);
 
-  // Stripe Checkout outcome (?checkout=success|cancelled|error) → billing card.
-  const { checkout } = await searchParams;
+  // Stripe redirect outcomes (?checkout=success|cancelled|error,
+  // ?billing=portal-error) → billing card.
+  const { checkout, billing } = await searchParams;
 
   return (
     <main id="main" className="bg-background flex min-h-svh justify-center p-6">
@@ -76,7 +80,12 @@ export default async function DashboardPage({
           <SignOutButton />
         </header>
 
-        <BillingCard pro={pro} checkout={checkout} />
+        <BillingCard
+          pro={pro}
+          hasBillingAccount={hasBillingAccount}
+          checkout={checkout}
+          billing={billing}
+        />
         <PushCard />
         <FilesCard />
         <TrpcTaskList />

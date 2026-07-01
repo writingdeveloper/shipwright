@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { env } from "@repo/env";
 
 import { PasswordResetEmail } from "./password-reset-email";
+import { PaymentFailedEmail } from "./payment-failed-email";
 import { VerifyEmail } from "./verify-email";
 import { WelcomeEmail } from "./welcome-email";
 
@@ -162,6 +163,24 @@ export function sendPasswordResetEmail(args: {
     to,
     subject: `Reset your ${appName} password`,
     react: createElement(PasswordResetEmail, { url, appName }),
+  });
+}
+
+/**
+ * Send the payment-failed (dunning) email. Graceful: no-ops without Resend
+ * config — safe to call best-effort from the Stripe webhook without try/catch.
+ */
+export function sendPaymentFailedEmail(args: {
+  readonly to: string;
+  /** Absolute URL of the page where the user can manage billing. */
+  readonly billingUrl: string;
+  readonly appName?: string;
+}): Promise<SendResult> {
+  const { to, billingUrl, appName = "Shipwright" } = args;
+  return sendEmail({
+    to,
+    subject: `Your ${appName} payment failed`,
+    react: createElement(PaymentFailedEmail, { billingUrl, appName }),
   });
 }
 

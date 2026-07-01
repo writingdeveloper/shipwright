@@ -633,6 +633,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../db
+      '@repo/email':
+        specifier: workspace:*
+        version: link:../email
       '@repo/env':
         specifier: workspace:*
         version: link:../env

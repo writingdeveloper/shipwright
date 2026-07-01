@@ -10,6 +10,7 @@ import {
   isStorageConfigured,
 } from "@repo/storage";
 
+import { allowAction } from "../../../lib/action-limits";
 import { requireUserId } from "../../../lib/auth-actions";
 
 /** Upload size ceiling (10 MB). Checked when minting the URL AND on save. */
@@ -53,6 +54,13 @@ export async function requestUploadUrl(
   size: number,
 ): Promise<UploadTicket> {
   const userId = await requireUserId();
+  // Rate-limit the mint (each ticket permits a 10 MB PUT, so this caps upload
+  // bandwidth per user). Thrown so the upload UI surfaces the reason inline,
+  // exactly like the size/config errors below. `saveFileRecord` is not limited:
+  // it is already bounded by the tickets minted here.
+  if (!(await allowAction("file", userId))) {
+    throw new Error("Too many uploads — try again in a minute.");
+  }
   if (!isStorageConfigured()) {
     throw new Error("Storage is not configured");
   }
@@ -142,6 +150,8 @@ export async function listFiles(): Promise<readonly FileListItem[]> {
  */
 export async function deleteFile(formData: FormData): Promise<void> {
   const userId = await requireUserId();
+  // Void action: a rate-limited delete is a logged no-op, like invalid input.
+  if (!(await allowAction("file", userId))) return;
   const id = formData.get("id");
   if (typeof id !== "string" || id.length === 0) return;
   const [row] = await db

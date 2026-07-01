@@ -8,6 +8,7 @@ Better Auth (email + password, email verification OFF), wired to `@repo/db` via 
   - Next route: `export { GET, POST } from "@repo/auth/next"`
 - **Authorize inside every server action / route handler**, not just middleware or the page — a signed-out or non-owner request must be rejected at the data layer.
 - Secrets come from `@repo/env` (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`). Never read `process.env` here.
+- **Self-serve account deletion is enabled** (`user.deleteUser.enabled`) — the endpoint verifies the session + supplied password; owner-table rows cascade via the schema FKs. EXTERNAL resources are the app's job: `apps/web`'s `deleteAccount` action snapshots the Stripe subscription id + S3 keys BEFORE deleting and cleans them up after (keeps this package decoupled from payments/storage). `APIError` is re-exported from `/server` so apps can branch on auth API errors without importing `better-auth` directly.
 - Server-only: do not import `/server` into client components.
 - **RBAC (admin plugin):** `ADMIN_EMAILS` auto-promotes a sign-up to `role:"admin"` via the
   `databaseHooks.user.create.after` hook. **Security caveat — only safe when email verification

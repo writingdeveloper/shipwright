@@ -23,6 +23,9 @@ import { logger } from "@repo/observability/logger";
  *   limited because it is already bounded by the tickets this mints).
  * - `push`: 10/min — sendTestPush fans out real network sends per subscription.
  * - `billing`: 5/min — each call creates a Stripe Checkout/Portal session.
+ * - `account`: 10/min — settings mutations (rename / password change / session
+ *   revoke / delete); password attempts especially shouldn't be brute-forcible
+ *   through an authed session.
  */
 const LIMITERS = {
   task: createRateLimiter({ limit: 60, windowMs: 60_000, prefix: "act-task" }),
@@ -32,6 +35,11 @@ const LIMITERS = {
     limit: 5,
     windowMs: 60_000,
     prefix: "act-billing",
+  }),
+  account: createRateLimiter({
+    limit: 10,
+    windowMs: 60_000,
+    prefix: "act-account",
   }),
 } as const;
 

@@ -73,6 +73,8 @@ export {
   type BillingResult,
 } from "./admin";
 
+export { cancelStripeSubscription } from "./cancel";
+
 import { configuredPriceId, isStripeConfigured } from "./client";
 
 /**

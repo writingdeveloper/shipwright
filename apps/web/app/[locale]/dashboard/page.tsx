@@ -1,8 +1,9 @@
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { auth } from "@repo/auth/server";
-import { redirect } from "../../../i18n/navigation";
+import { Link, redirect } from "../../../i18n/navigation";
 import { getSubscription, isActiveSubscription } from "@repo/payments";
+import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
   CardContent,
@@ -77,7 +78,12 @@ export default async function DashboardPage({
               </span>
             </p>
           </div>
-          <SignOutButton />
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link href="/settings">Settings</Link>
+            </Button>
+            <SignOutButton />
+          </div>
         </header>
 
         <BillingCard

@@ -7,6 +7,11 @@ import {
 } from "@repo/email";
 import { env } from "@repo/env";
 import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
+// Re-exported so app code can branch on Better Auth API errors (e.g. a wrong
+// password on change/delete) without importing `better-auth` directly — the
+// package boundary rule.
+export { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
@@ -74,9 +79,28 @@ export const auth = betterAuth({
         }
       : {}),
   },
+  user: {
+    // Self-serve account deletion (GDPR "right to be forgotten"). The endpoint
+    // verifies the CURRENT session and, when a `password` is supplied, the
+    // credential — so a stolen unlocked browser can't silently delete the
+    // account. Owner-table rows go with the user via the schema's
+    // `onDelete: "cascade"` FKs; EXTERNAL resources (the Stripe subscription,
+    // S3 objects) are the app's job — apps/web's `deleteAccount` action reads
+    // them before calling this and cleans them up after it succeeds, keeping
+    // this package decoupled from @repo/payments / @repo/storage.
+    deleteUser: {
+      enabled: true,
+    },
+  },
   // RBAC via the vetted admin plugin (role/banned columns live in @repo/db).
   // Default adminRoles: ["admin"]. No hand-rolled authorization.
-  plugins: [admin()],
+  //
+  // nextCookies (MUST stay last): propagates Set-Cookie from `auth.api.*`
+  // calls made inside Server Actions via next/headers. Without it, an action
+  // that rotates the session (changePassword revokeOtherSessions) revokes the
+  // browser's current cookie but can't deliver the fresh one — silently
+  // signing the user out.
+  plugins: [admin(), nextCookies()],
   databaseHooks: {
     user: {
       create: {

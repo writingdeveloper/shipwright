@@ -7,6 +7,12 @@ describe("defineManifest", () => {
     const m = defineManifest();
     expect(m.display).toBe("standalone");
     expect(m.start_url).toBe("/");
+    // Explicit identity/orientation/categories (not left to browser defaults).
+    expect(m.id).toBe("/");
+    expect(m.orientation).toBe("any");
+    expect(m.categories).toEqual(["productivity"]);
+    // No fabricated screenshot references by default (broken refs are worse).
+    expect(m.screenshots).toBeUndefined();
     // 192, 512 and a maskable 512 icon are present.
     expect(m.icons?.map((i) => i.src)).toEqual([
       "/icons/icon-192.png",
@@ -14,6 +20,19 @@ describe("defineManifest", () => {
       "/icons/icon-maskable-512.png",
     ]);
     expect(m.icons?.some((i) => i.purpose === "maskable")).toBe(true);
+  });
+
+  it("derives id from startUrl and passes screenshots through when given", () => {
+    const shots = [
+      { src: "/screenshots/home.png", sizes: "1080x1920", type: "image/png" },
+    ];
+    const m = defineManifest({ startUrl: "/app", screenshots: shots });
+    expect(m.id).toBe("/app");
+    expect(m.screenshots).toEqual(shots);
+    // An explicit id/orientation override wins.
+    expect(defineManifest({ id: "acme", orientation: "portrait" })).toMatchObject(
+      { id: "acme", orientation: "portrait" },
+    );
   });
 
   it("applies name/short_name/theme overrides", () => {

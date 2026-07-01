@@ -10,8 +10,38 @@ test("serves a valid web app manifest", async ({ request }) => {
   const manifest = await res.json();
   expect(manifest.display).toBe("standalone");
   expect(manifest.start_url).toBe("/");
+  // Explicit identity/orientation/categories for a richer, stable install.
+  expect(manifest.id).toBe("/");
+  expect(manifest.orientation).toBe("any");
+  expect(manifest.categories).toContain("productivity");
   expect(Array.isArray(manifest.icons)).toBe(true);
   expect(manifest.icons.length).toBeGreaterThanOrEqual(2);
+  expect(
+    manifest.icons.some((i: { purpose?: string }) => i.purpose === "maskable"),
+  ).toBe(true);
+});
+
+test("sw.js is served must-revalidate so updates ship on the next visit", async ({
+  request,
+}) => {
+  const res = await request.get("/sw.js");
+  expect(res.status()).toBe(200);
+  const cacheControl = res.headers()["cache-control"] ?? "";
+  expect(cacheControl).toContain("max-age=0");
+  expect(cacheControl).toContain("must-revalidate");
+  expect(res.headers()["service-worker-allowed"]).toBe("/");
+});
+
+test("emits iOS standalone meta tags", async ({ page }) => {
+  await page.goto("/");
+  await expect(
+    page.locator('meta[name="apple-mobile-web-app-capable"]'),
+  ).toHaveAttribute("content", "yes");
+  await expect(
+    page.locator('meta[name="apple-mobile-web-app-status-bar-style"]'),
+  ).toHaveAttribute("content", "black-translucent");
+  // Next auto-links the app/manifest.ts route.
+  await expect(page.locator('link[rel="manifest"]')).toHaveCount(1);
 });
 
 test("offline fallback page renders", async ({ page }) => {

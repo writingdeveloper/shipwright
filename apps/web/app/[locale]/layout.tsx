@@ -36,12 +36,30 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
-  return createMetadata(seoSite, {
+  const base = createMetadata(seoSite, {
     locale,
     languages: Object.fromEntries(
       routing.locales.map((l) => [l, l === defaultLocale ? "/" : `/${l}`]),
     ),
   });
+  return {
+    ...base,
+    // iOS standalone-mode support (Safari ignores the manifest's display
+    // mode). `appleWebApp` emits apple-mobile-web-app-{title,status-bar-style}
+    // and the modern `mobile-web-app-capable`. Next no longer emits the
+    // legacy `apple-mobile-web-app-capable`, which iOS < 17.4 still needs for a
+    // chromeless "Add to Home Screen" launch — so we add it explicitly for max
+    // device coverage.
+    appleWebApp: {
+      capable: true,
+      title: SITE_NAME,
+      statusBarStyle: "black-translucent",
+    },
+    other: {
+      ...(base.other ?? {}),
+      "apple-mobile-web-app-capable": "yes",
+    },
+  };
 }
 
 /** Pre-render the locale segment for each configured locale at build time. */

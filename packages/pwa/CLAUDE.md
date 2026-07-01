@@ -18,6 +18,17 @@ ships the code that talks to it.
   has no webpack-plugin support. The static SW is Turbopack-agnostic. Bump
   `CACHE_VERSION` in `sw.js` to invalidate caches on deploy. Register in prod only
   (a cache-first SW fights dev HMR) — test against `next build && next start`.
+- **`sw.js` must never be cached stale**: the app serves it with
+  `Cache-Control: public, max-age=0, must-revalidate` (+ `Service-Worker-Allowed: /`)
+  via `next.config.ts` `headers()`, so a new deploy's worker ships on the next
+  visit. `<ServiceWorkerProvider/>` listens for `controllerchange` and shows a
+  "new version — reload" banner (only when an OLD worker was controlling; the
+  first install is silent). `sw.js` `skipWaiting()`s + `clients.claim()`s.
+- **iOS standalone**: Safari ignores the manifest `display`, so the layout's
+  `metadata.appleWebApp` emits `apple-mobile-web-app-{capable,title,status-bar-style}`.
+- **`defineManifest` sets `id`/`orientation`/`categories` explicitly**; pass
+  `screenshots` to enrich the install prompt (no default — a broken screenshot
+  ref is worse than none).
 - **Crypto is delegated**: VAPID signing uses the vetted `web-push` library; we
   never hand-roll it. The DB table (`push_subscription`) lives in `@repo/db`,
   owner-scoped; prune 404/410 endpoints on send.

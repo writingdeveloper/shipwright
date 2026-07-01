@@ -64,6 +64,18 @@ test("admin manages users (role / ban / delete) and every action is audited", as
   await expect(page.getByTestId("audit-row-user.ban").first()).toBeVisible();
   await expect(page.getByTestId("audit-row-user.unban").first()).toBeVisible();
   await expect(page.getByTestId("audit-row-user.delete").first()).toBeVisible();
+
+  // The `?action=` filter narrows to one action type (forensic drill-down):
+  // filtering to user.ban shows ban rows but excludes the role.set rows.
+  await page.goto("/audit?action=user.ban");
+  await expect(page.getByTestId("audit-total")).toContainText('matching "user.ban"');
+  await expect(page.getByTestId("audit-row-user.ban").first()).toBeVisible();
+  await expect(page.getByTestId("audit-row-user.role.set")).toHaveCount(0);
+
+  // A filter with no matches shows zero (proves it's really filtering server-side).
+  await page.goto("/audit?action=does.not.exist");
+  await expect(page.getByTestId("audit-total")).toContainText("0 actions");
+  await expect(page.getByTestId("audit-row-user.ban")).toHaveCount(0);
 });
 
 test("an admin cannot act on their own account (self-protection)", async ({

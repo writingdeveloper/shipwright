@@ -64,6 +64,33 @@ test("response carries the security headers and a strict nonce CSP", async ({
   ).toBe(true);
 });
 
+test("an unknown path renders the localized not-found WITH the nonce (no CSP violations)", async ({
+  page,
+}) => {
+  // Regression guard for the catch-all: without `[locale]/[...rest]`, an unknown
+  // path fell to Next's built-in 404, which renders outside `[locale]/layout`
+  // (no `connection()`, no nonce) so the strict CSP blocked every script/style
+  // — a wall of console violations, and Next's bare 404 instead of the app's.
+  const cspViolations: string[] = [];
+  page.on("console", (msg) => {
+    const t = msg.text();
+    if (
+      msg.type() === "error" &&
+      (t.includes("Content Security Policy") || t.includes("was blocked"))
+    ) {
+      cspViolations.push(t);
+    }
+  });
+
+  const res = await page.goto("/this-route-does-not-exist");
+  expect(res?.status(), "unknown path is a real 404").toBe(404);
+
+  // The app's OWN not-found rendered (its CTA links home), not Next's default.
+  await expect(page.getByRole("link", { name: "Back home" })).toBeVisible();
+  // …and its scripts loaded under the nonce CSP — zero violations.
+  expect(cspViolations, cspViolations.join("\n")).toEqual([]);
+});
+
 test("each request gets a unique nonce", async ({ page }) => {
   const first = await page.goto("/sign-in");
   const second = await page.goto("/sign-up");

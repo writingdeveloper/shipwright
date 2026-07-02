@@ -25,6 +25,12 @@
   "layout": {
     "skipToContent": "본문으로 건너뛰기"
   },
+  "cookies": {
+    "region": "쿠키 동의",
+    "message": "{app}은(는) 서비스 운영에 필요한 필수 쿠키를 사용하며, 선택 쿠키(예: 분석)는 동의하신 경우에만 사용합니다. <link>개인정보처리방침</link>을 확인하세요.",
+    "reject": "필수만 허용",
+    "accept": "모두 허용"
+  },
   "auth": {
     "signIn": {
       "title": "다시 오신 것을 환영합니다",

@@ -87,11 +87,26 @@ export default async function LocaleLayout({
   // rendering — see https://nextjs.org/docs/app/guides/content-security-policy.
   await connection();
 
-  const t = await getTranslations({ locale, namespace: "layout" });
+  const [t, tCookies] = await Promise.all([
+    getTranslations({ locale, namespace: "layout" }),
+    getTranslations({ locale, namespace: "cookies" }),
+  ]);
 
   // Locale-aware privacy page link: default locale is unprefixed.
   const privacyHref =
     locale === defaultLocale ? "/privacy" : `/${locale}/privacy`;
+
+  // Localised cookie-banner copy. @repo/legal ships an English default; we pass
+  // translated strings (and a rich node so the inline privacy link is localised
+  // + locale-prefixed) so the banner matches the page's language.
+  const cookieMessage = tCookies.rich("message", {
+    app: SITE_NAME,
+    link: (chunks) => (
+      <a href={privacyHref} className="text-primary hover:underline">
+        {chunks}
+      </a>
+    ),
+  });
 
   return (
     <html
@@ -128,7 +143,12 @@ export default async function LocaleLayout({
             <GoogleAnalytics />
             {children}
             {/* Opt-in cookie consent. Rendered by Next so the nonce CSP covers it. */}
-            <CookieConsentBanner appName={SITE_NAME} privacyHref={privacyHref} />
+            <CookieConsentBanner
+              message={cookieMessage}
+              rejectLabel={tCookies("reject")}
+              acceptLabel={tCookies("accept")}
+              regionLabel={tCookies("region")}
+            />
           </PostHogProvider>
         </NextIntlClientProvider>
       </body>

@@ -92,4 +92,11 @@ test("externalized app surfaces render fully in Korean, not just the home page",
   await expect(
     page.getByRole("button", { name: "비밀번호 표시" }),
   ).toBeVisible();
+  // The @repo/legal cookie-consent banner is localised via props from the
+  // layout (the package ships English; the app injects the translation), so
+  // even shared-package chrome matches the page language on /ko.
+  await expect(page.getByRole("button", { name: "모두 허용" })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "쿠키 동의" }),
+  ).toBeVisible();
 });

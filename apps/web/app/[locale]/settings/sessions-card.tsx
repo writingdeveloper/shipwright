@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Card,
@@ -68,7 +68,10 @@ export async function SessionsCard({
   sessions: readonly SessionItem[];
 }) {
   const others = sessions.filter((s) => !s.current).length;
-  const t = await getTranslations("settings.sessions");
+  const [t, format] = await Promise.all([
+    getTranslations("settings.sessions"),
+    getFormatter(),
+  ]);
   const labels = {
     unknownDevice: t("unknownDevice"),
     browserFallback: t("browserFallback"),
@@ -102,7 +105,9 @@ export async function SessionsCard({
               </span>
               <span className="text-muted-foreground">
                 {t("since", {
-                  date: new Date(s.createdAt).toLocaleDateString("en-US"),
+                  date: format.dateTime(new Date(s.createdAt), {
+                    dateStyle: "medium",
+                  }),
                 })}
               </span>
             </li>

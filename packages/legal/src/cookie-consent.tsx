@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@repo/ui/components/ui/button";
 
 import {
@@ -90,12 +90,23 @@ export function useConsent() {
 
 /** Props for {@link CookieConsentBanner}. */
 export type CookieConsentBannerProps = {
-  /** App name, shown in the banner copy. */
+  /** App name, shown in the default banner copy. */
   readonly appName?: string;
   /** Href of the privacy policy the banner links to. */
   readonly privacyHref?: string;
   /** Optional extra class names on the banner card. */
   readonly className?: string;
+  /**
+   * Localised copy. `@repo/legal` is dialect/locale-agnostic, so it ships an
+   * English default; a host app with i18n passes translated strings (e.g. from
+   * next-intl) instead — the `message` may be a rich node so the app can embed
+   * its own localised privacy-policy link. Omit any to keep the English default.
+   */
+  readonly message?: ReactNode;
+  readonly rejectLabel?: string;
+  readonly acceptLabel?: string;
+  /** Accessible name of the banner region. */
+  readonly regionLabel?: string;
 };
 
 /**
@@ -106,6 +117,10 @@ export function CookieConsentBanner({
   appName = "this app",
   privacyHref = "/privacy",
   className,
+  message,
+  rejectLabel = "Reject non-essential",
+  acceptLabel = "Accept all",
+  regionLabel = "Cookie consent",
 }: CookieConsentBannerProps) {
   const { hydrated, hasDecided, accept, reject } = useConsent();
 
@@ -117,7 +132,7 @@ export function CookieConsentBanner({
     <div
       className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-4"
       role="region"
-      aria-label="Cookie consent"
+      aria-label={regionLabel}
       data-testid="cookie-consent"
     >
       <div
@@ -129,12 +144,16 @@ export function CookieConsentBanner({
           .trim()}
       >
         <p className="text-muted-foreground text-sm">
-          {appName} uses strictly necessary cookies to run, and optional cookies
-          (e.g. analytics) only with your consent. See our{" "}
-          <a href={privacyHref} className="text-primary hover:underline">
-            Privacy Policy
-          </a>
-          .
+          {message ?? (
+            <>
+              {appName} uses strictly necessary cookies to run, and optional
+              cookies (e.g. analytics) only with your consent. See our{" "}
+              <a href={privacyHref} className="text-primary hover:underline">
+                Privacy Policy
+              </a>
+              .
+            </>
+          )}
         </p>
         <div className="flex shrink-0 gap-2">
           <Button
@@ -143,14 +162,14 @@ export function CookieConsentBanner({
             onClick={reject}
             data-testid="cookie-consent-reject"
           >
-            Reject non-essential
+            {rejectLabel}
           </Button>
           <Button
             size="sm"
             onClick={accept}
             data-testid="cookie-consent-accept"
           >
-            Accept all
+            {acceptLabel}
           </Button>
         </div>
       </div>

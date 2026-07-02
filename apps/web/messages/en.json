@@ -25,6 +25,12 @@
   "layout": {
     "skipToContent": "Skip to content"
   },
+  "cookies": {
+    "region": "Cookie consent",
+    "message": "{app} uses strictly necessary cookies to run, and optional cookies (e.g. analytics) only with your consent. See our <link>Privacy Policy</link>.",
+    "reject": "Reject non-essential",
+    "accept": "Accept all"
+  },
   "auth": {
     "signIn": {
       "title": "Welcome back",

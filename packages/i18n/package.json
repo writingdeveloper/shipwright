@@ -21,6 +21,6 @@
     "vitest": "^4.1.9"
   },
   "dependencies": {
-    "next-intl": "^4.13.0"
+    "next-intl": "^4.13.1"
   }
 }

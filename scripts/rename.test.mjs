@@ -39,8 +39,23 @@ function makeFixture() {
       '  const title = data.title || "Shipwright";\n',
   );
   write(
-    "apps/web/e2e/ux.spec.ts",
-    'for (const [path, heading] of [\n    ["/", "Shipwright"],\n  ]) {}\n',
+    "apps/web/e2e/app-name.ts",
+    'export const E2E_APP_NAME =\n  process.env.NEXT_PUBLIC_APP_NAME?.trim() || "Shipwright";\n',
+  );
+  write(
+    "apps/admin/app/layout.tsx",
+    'const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || "Shipwright";\n',
+  );
+  write(
+    "packages/email/src/send.ts",
+    'import { env } from "@repo/env";\n' +
+      'const { appName = env.NEXT_PUBLIC_APP_NAME ?? "Shipwright" } = args;\n',
+  );
+  write(
+    "DEPLOY.md",
+    "# Deploying shipwright\n" +
+      "turso db create shipwright-prod\n" +
+      "the @repo/pwa package ships shipwright defaults\n",
   );
   // Denylisted: same brand strings, must pass through untouched.
   write(
@@ -65,6 +80,12 @@ test("slugify dash-cases a display name", () => {
 test("parseArgs refuses an empty/whitespace display name", () => {
   assert.throws(() => parseArgs([]), /display name/i);
   assert.throws(() => parseArgs(["   "]), /display name/i);
+});
+
+test("parseArgs refuses replaceAll-magic and literal-breaking characters", () => {
+  for (const bad of ['Cash $& Grab', 'Cash $$ App', 'A "quoted" name', "back\\slash"]) {
+    assert.throws(() => parseArgs([bad]), /must not contain/i, bad);
+  }
 });
 
 test("parseArgs picks up flags and derives the slug", () => {
@@ -116,7 +137,18 @@ test("allowlisted patterns are rewritten; denylisted files are never planned", (
       readFixture(root, "apps/web/public/sw.js"),
       /data\.title \|\| "Acme Demo"/,
     );
-    assert.match(readFixture(root, "apps/web/e2e/ux.spec.ts"), /"Acme Demo"/);
+    assert.match(
+      readFixture(root, "apps/web/e2e/app-name.ts"),
+      /\|\| "Acme Demo";/,
+    );
+    assert.match(
+      readFixture(root, "apps/admin/app/layout.tsx"),
+      /\|\| "Acme Demo";/,
+    );
+    assert.match(
+      readFixture(root, "packages/email/src/send.ts"),
+      /\?\? "Acme Demo" \} = args;/,
+    );
     // Denylisted fixture is byte-identical.
     assert.equal(
       readFixture(root, "packages/create-shipwright/src/index.ts"),
@@ -164,6 +196,28 @@ test("running twice is idempotent", () => {
     assert.equal(secondPlan.length, 0, "second run should plan zero edits");
     applyPlan(root, secondPlan, { dryRun: false });
     assert.equal(readFixture(root, "apps/web/lib/site.ts"), first);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('idempotent even when the new name CONTAINS "Shipwright" (docs + pairs)', () => {
+  const root = makeFixture();
+  const opts = { display: "Shipwright Pro", slug: "shipwright-pro", docs: true };
+  try {
+    applyPlan(root, buildPlan(root, opts), { dryRun: false });
+    const deploy1 = readFixture(root, "DEPLOY.md");
+    const sw1 = readFixture(root, "apps/web/public/sw.js");
+    // First run rewrote the brand once…
+    assert.match(deploy1, /# Deploying Shipwright Pro/);
+    assert.match(deploy1, /turso db create shipwright-pro-prod/);
+    assert.match(deploy1, /@repo\/pwa package ships shipwright defaults/); // @repo/ line untouched
+    assert.match(sw1, /`shipwright-pro-\$\{CACHE_VERSION\}`/);
+
+    // …and a second run changes NOTHING (no "Shipwright Pro Pro").
+    applyPlan(root, buildPlan(root, opts), { dryRun: false });
+    assert.equal(readFixture(root, "DEPLOY.md"), deploy1);
+    assert.equal(readFixture(root, "apps/web/public/sw.js"), sw1);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

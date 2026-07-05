@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { E2E_APP_NAME, escapeHtmlAttr, escapeHtmlText } from "./app-name";
 
 /**
  * End-to-end proof for the @repo/seo + @repo/legal wiring, against the REAL
@@ -48,10 +49,10 @@ test("homepage <head> carries OpenGraph + title metadata", async ({
   const res = await request.get("/");
   const html = await res.text();
 
-  expect(html).toContain("<title>Shipwright</title>");
+  expect(html).toContain(`<title>${escapeHtmlText(E2E_APP_NAME)}</title>`);
   expect(html).toContain('property="og:title"');
   expect(html).toContain('property="og:site_name"');
-  expect(html).toContain('content="Shipwright"');
+  expect(html).toContain(`content="${escapeHtmlAttr(E2E_APP_NAME)}"`);
   expect(html).toContain('name="twitter:card"');
   // schema.org structured data injected by <JsonLd>.
   expect(html).toContain('application/ld+json');

@@ -265,10 +265,17 @@ function detectPackageManager(explicit?: PackageManager): PackageManager {
 }
 
 function run(command: string, args: string[], cwd: string): boolean {
-  const result = spawnSync(command, args, {
+  // Windows needs a shell to launch .cmd shims (pnpm/npm/yarn), but a shell
+  // also re-splits args on spaces — quote those (none ever contain `"`), else
+  // e.g. the spaced initial-commit message breaks `git commit` silently.
+  const useShell = process.platform === "win32";
+  const safeArgs = useShell
+    ? args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg))
+    : args;
+  const result = spawnSync(command, safeArgs, {
     cwd,
     stdio: "inherit",
-    shell: process.platform === "win32",
+    shell: useShell,
   });
   return result.status === 0;
 }

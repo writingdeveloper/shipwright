@@ -121,7 +121,7 @@ self.addEventListener("push", (event) => {
   } catch {
     data = { title: "Notification", body: event.data ? event.data.text() : "" };
   }
-  const title = data.title || "Shipwright";
+  const title = data.title || "{{ titleCase name }}";
   const options = {
     body: data.body || "",
     tag: data.tag,

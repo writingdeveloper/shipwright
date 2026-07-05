@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 import { defineConfig, devices } from "@playwright/test";
 
+import { E2E_APP_NAME } from "./e2e/app-name";
+
 // This config is an ES module ("type": "module"), so derive __dirname manually.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -54,6 +56,10 @@ const serverEnv = {
   // Drive @repo/seo's metadataBase / sitemap / robots absolute URLs off the
   // test server's origin so the SEO e2e assertions check real, matching output.
   NEXT_PUBLIC_APP_URL: BASE_URL,
+  // Pin the app name the server builds with to the SAME value the branding
+  // specs assert (see e2e/app-name.ts) — process env beats .env files in Next,
+  // so a NEXT_PUBLIC_APP_NAME in a dev's apps/web/.env can't skew the suite.
+  NEXT_PUBLIC_APP_NAME: E2E_APP_NAME,
 };
 
 export default defineConfig({

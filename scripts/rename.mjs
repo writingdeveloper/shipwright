@@ -58,11 +58,12 @@ export function parseArgs(argv) {
   if (!display) {
     throw new Error('A display name is required: pnpm rename "<Display Name>"');
   }
-  // The name is spliced into JS/JSON string literals — refuse characters that
-  // would escape them rather than trying to quote our way around it.
-  if (/["`\\\n\r]/.test(display)) {
+  // The name is spliced into JS/JSON string literals (and used as a
+  // `replaceAll` replacement, where `$` patterns like `$&` are magic) — refuse
+  // characters that would escape or corrupt rather than quoting around them.
+  if (/["`\\$\n\r]/.test(display)) {
     throw new Error(
-      "The display name must not contain quotes, backticks, or backslashes.",
+      "The display name must not contain quotes, backticks, backslashes, or dollar signs.",
     );
   }
   const slug = slugify(display);
@@ -125,7 +126,12 @@ function allowlist({ display, slug }) {
     {
       file: "apps/web/public/sw.js",
       pairs: [
-        pair("const CACHE_NAME = `shipwright-", `const CACHE_NAME = \`${slug}-`),
+        // Anchored through `${` so a slug that itself starts with "shipwright"
+        // (e.g. renaming to "Shipwright Pro") can't re-match on a second run.
+        pair(
+          "const CACHE_NAME = `shipwright-${",
+          "const CACHE_NAME = `" + slug + "-${",
+        ),
         pair('data.title || "Shipwright"', `data.title || "${display}"`),
       ],
     },
@@ -135,25 +141,18 @@ function allowlist({ display, slug }) {
     },
     {
       file: "apps/admin/app/layout.tsx",
+      pairs: [pair('|| "Shipwright"', `|| "${display}"`)],
+    },
+    {
+      file: "packages/email/src/send.ts",
       pairs: [pair('?? "Shipwright"', `?? "${display}"`)],
     },
-    // e2e specs pin the fallback text the two edits above change — they must
-    // move in lockstep or `pnpm test:e2e` breaks. Match the SPECIFIC assertion
-    // strings only.
+    // The e2e branding specs assert E2E_APP_NAME, whose fallback lives in ONE
+    // place — it must move in lockstep with the source fallbacks above or
+    // `pnpm test:e2e` breaks.
     {
-      file: "apps/web/e2e/ux.spec.ts",
-      pairs: [pair('["/", "Shipwright"]', `["/", "${display}"]`)],
-    },
-    {
-      file: "apps/web/e2e/seo-legal.spec.ts",
-      pairs: [
-        pair("<title>Shipwright</title>", `<title>${display}</title>`),
-        pair('content="Shipwright"', `content="${display}"`),
-      ],
-    },
-    {
-      file: "apps/web/e2e/seo-geo.spec.ts",
-      pairs: [pair('"# Shipwright"', `"# ${display}"`)],
+      file: "apps/web/e2e/app-name.ts",
+      pairs: [pair('|| "Shipwright"', `|| "${display}"`)],
     },
     {
       file: "apps/web/e2e/pwa.spec.ts",
@@ -167,18 +166,54 @@ function allowlist({ display, slug }) {
       file: "README.md",
       docs: true,
       label: "(intro brand mentions: title + opening paragraphs)",
-      transform: (content) => renameDocsIntro(content, display),
+      transform: (content) => renameDocsIntro(content, display, slug),
     },
     {
       file: "DEPLOY.md",
       docs: true,
       label: "(brand mentions across the deploy guide)",
-      transform: (content) =>
-        content
-          .replaceAll(/\bshipwright-/g, `${slug}-`)
-          .replaceAll(/\bshipwright\b/gi, display),
+      transform: (content) => renameDocsLines(content, display, slug),
     },
   ];
+}
+
+/**
+ * Replace `pattern` matches in `line`, SKIPPING matches that already sit
+ * inside an occurrence of `renamed` — the property that keeps the docs
+ * transforms idempotent when the new name itself contains the old brand word
+ * (renaming to "Shipwright Pro" must not become "Shipwright Pro Pro" on a
+ * second run).
+ */
+function replaceBrandWord(line, pattern, replacement, renamed) {
+  const renamedLower = renamed.toLowerCase();
+  return line.replace(pattern, (match, offset) => {
+    const at = renamedLower.indexOf(match.toLowerCase());
+    if (at !== -1) {
+      const candidate = line.slice(offset - at, offset - at + renamed.length);
+      if (candidate.toLowerCase() === renamedLower) return match;
+    }
+    return replacement;
+  });
+}
+
+/**
+ * Rewrite brand mentions line-by-line: identifier prefixes ("shipwright-…" →
+ * "<slug>-…") first, then the standalone word → display name. Lines mentioning
+ * the internal `@repo/` scope are never touched (same guard as applyPairs).
+ */
+function renameDocsLines(content, display, slug) {
+  // Hyphens count as part of an identifier: "create-shipwright" and a slug's
+  // own "shipwright-…" must never match the standalone-word pattern.
+  const prefix = /(?<![\w-])shipwright-/gi;
+  const word = /(?<![\w-])shipwright(?![\w-])/gi;
+  return content
+    .split("\n")
+    .map((line) => {
+      if (line.includes("@repo/")) return line;
+      const next = replaceBrandWord(line, prefix, `${slug}-`, `${slug}-`);
+      return replaceBrandWord(next, word, display, display);
+    })
+    .join("\n");
 }
 
 /**
@@ -186,11 +221,10 @@ function allowlist({ display, slug }) {
  * paragraphs, i.e. everything before the first `## ` section) — the body
  * documents the starter's own packages and stays put.
  */
-function renameDocsIntro(content, display) {
+function renameDocsIntro(content, display, slug) {
   const bodyStart = content.search(/^## /m);
-  if (bodyStart === -1) return content.replaceAll(/\bshipwright\b/gi, display);
-  const intro = content.slice(0, bodyStart).replaceAll(/\bshipwright\b/gi, display);
-  return intro + content.slice(bodyStart);
+  if (bodyStart === -1) return renameDocsLines(content, display, slug);
+  return renameDocsLines(content.slice(0, bodyStart), display, slug) + content.slice(bodyStart);
 }
 
 // ---------------------------------------------------------------------------
@@ -282,7 +316,14 @@ function main() {
     `rename: "${args.display}" (slug "${args.slug}")${args.docs ? " + docs" : ""} — ${mode}\n`,
   );
   if (plan.length === 0) {
-    console.log("Nothing to do — already renamed (or patterns not found).");
+    console.log("No rename patterns found — nothing written.");
+    console.log(
+      "This tool rebrands a FRESH clone once: it matches the original \"Shipwright\"",
+    );
+    console.log(
+      "strings only. To rename AGAIN, first revert the earlier rename commit",
+    );
+    console.log("(e.g. `git revert <rename-commit>`), then re-run this command.");
     return;
   }
   for (const { file, edits } of plan) {

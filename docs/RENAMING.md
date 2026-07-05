@@ -10,10 +10,15 @@ Set one env var in `apps/web/.env`:
 NEXT_PUBLIC_APP_NAME=Acme
 ```
 
-That drives every runtime surface: `<title>`, the homepage H1, the PWA
-manifest, OpenGraph/SEO, the legal pages' app/entity name, the admin app's
-metadata, and all transactional email subjects/bodies. Unset, everything falls
-back to "Shipwright".
+That drives every runtime surface of the WEB app: `<title>`, the homepage H1,
+the PWA manifest, OpenGraph/SEO, the legal pages' app/entity name, and all
+transactional email subjects/bodies. Unset, everything falls back to
+"Shipwright".
+
+Caveat — `apps/admin` builds with its OWN environment: a var in
+`apps/web/.env` does not reach it. Give admin the same value via your
+shell/CI env or an `apps/admin/.env`, or skip env entirely and rely on
+Layer 2, which rewrites admin's fallback statically.
 
 ## Layer 2 — static identity: `pnpm rename`
 
@@ -36,6 +41,11 @@ product-identity strings (the Stripe `appInfo` integration id and the legal
 template disclaimer, which names the starter the template came from).
 
 After running: review with `git diff`, then `pnpm check-types && pnpm test`
-(the e2e fallback assertions are rewritten in lockstep, so both stay green).
+(the e2e suite asserts the same single app-name source the rename rewrites,
+so both stay green).
 
-The tool's unit tests run with `pnpm test:rename`.
+The rename is ONE-SHOT: it matches the original "Shipwright" strings, so a
+fresh clone renames once. To pick a different name later, `git revert` the
+earlier rename commit and re-run.
+
+The tool's unit tests run with `pnpm test:rename` (also part of `pnpm test`).

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { E2E_APP_NAME } from "./app-name";
 
 /**
  * GEO / launch-meta smoke. Account-free: serves llms.txt, an OG image, an
@@ -8,7 +9,7 @@ test("serves llms.txt as text/plain", async ({ request }) => {
   const res = await request.get("/llms.txt");
   expect(res.status()).toBe(200);
   expect(res.headers()["content-type"]).toContain("text/plain");
-  expect(await res.text()).toContain("# Shipwright");
+  expect(await res.text()).toContain(`# ${E2E_APP_NAME}`);
 });
 
 test("opengraph-image renders a PNG", async ({ request }) => {

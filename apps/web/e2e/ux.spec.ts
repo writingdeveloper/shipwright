@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { E2E_APP_NAME } from "./app-name";
 
 /**
  * a11y / UX guards for the public pages — account-free. Cover the launch-polish
@@ -8,7 +9,7 @@ import { expect, test } from "./fixtures";
 
 test("public pages expose a single descriptive h1", async ({ page }) => {
   for (const [path, heading] of [
-    ["/", "Shipwright"],
+    ["/", E2E_APP_NAME],
     ["/sign-in", "Welcome back"],
     ["/sign-up", "Create your account"],
   ] as const) {

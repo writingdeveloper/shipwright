@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@repo/ui/components/ui/card";
 
-import { seoSite } from "../../lib/site";
+import { seoSite, SITE_NAME } from "../../lib/site";
 
 export async function generateMetadata({
   params,
@@ -49,7 +49,7 @@ export default async function Home({
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle asChild>
-            <h1>{t("home.title")}</h1>
+            <h1>{t("home.title", { app: SITE_NAME })}</h1>
           </CardTitle>
           <CardDescription>{t("home.tagline")}</CardDescription>
         </CardHeader>

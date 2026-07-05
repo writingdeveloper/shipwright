@@ -2,7 +2,7 @@
   "home": {
     "tagline": "A per-user Tasks app. Create an account or sign in to reach your dashboard.",
     "body": "Auth and the database foundation are wired up with Better Auth and Drizzle (libSQL). The protected dashboard proves server-side auth gating.",
-    "title": "Shipwright"
+    "title": "{app}"
   },
   "nav": {
     "signIn": "Sign in",

@@ -24,6 +24,8 @@ npx create-shipwright [directory] [options]
 | `--template <source>` | giget source or a local dir to copy from (default: `github:writingdeveloper/shipwright`) |
 | `--ref <branch\|tag>` | Git ref of the default repo (default: `main`) |
 | `--pm <pnpm\|npm\|yarn\|bun>` | Package manager for install (default: `pnpm`, auto-detected from the runner) |
+| `--name <display>` | App display name — runs the template's `pnpm rename` after scaffolding (default: prompt when interactive, otherwise skip) |
+| `--no-rename` | Keep the template's own branding (no prompt, no rename) |
 | `--no-git` | Do not run `git init` |
 | `--no-install` | Do not install dependencies |
 | `--force` | Allow scaffolding into a non-empty directory |
@@ -35,6 +37,7 @@ npx create-shipwright [directory] [options]
 
 ```sh
 npx create-shipwright my-app
+npx create-shipwright my-app --name "Acme"
 npx create-shipwright my-app --ref v0.2.0 --pm npm
 npx create-shipwright my-app --no-install --no-git
 npx create-shipwright my-app --dry-run

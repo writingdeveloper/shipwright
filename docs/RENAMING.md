@@ -2,6 +2,10 @@
 
 Rebranding a clone of this starter is a two-layer, one-command-each operation.
 
+Scaffolding with `npx create-shipwright` already asks "App name?" and runs
+Layer 2 for you (skip with `--no-rename`, script it with `--name "Acme"`).
+The layers below are for a manually cloned repo — or for reference.
+
 ## Layer 1 — runtime name: `NEXT_PUBLIC_APP_NAME`
 
 Set one env var in `apps/web/.env`:

@@ -2,7 +2,7 @@
   "home": {
     "tagline": "사용자별 할 일 앱. 계정을 만들거나 로그인하여 대시보드로 이동하세요.",
     "body": "인증과 데이터베이스 기반은 Better Auth와 Drizzle(libSQL)로 구성되어 있습니다. 보호된 대시보드가 서버 측 인증 게이팅을 증명합니다.",
-    "title": "Shipwright"
+    "title": "{app}"
   },
   "nav": {
     "signIn": "로그인",

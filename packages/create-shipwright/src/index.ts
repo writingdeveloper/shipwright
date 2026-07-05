@@ -24,6 +24,8 @@ import { downloadTemplate } from "giget";
 import pc from "picocolors";
 import prompts from "prompts";
 
+import { titleCaseFromDir, validateAppName } from "./rename-option.js";
+
 // Bumped by the build from package.json is overkill; keep a single source here.
 const CLI_NAME = "create-shipwright";
 
@@ -75,6 +77,11 @@ interface Options {
   /** Optional features to KEEP ("all" or a subset). undefined ⇒ resolve later
    *  (prompt when interactive, else keep all). */
   features?: readonly string[] | "all";
+  /** App display name for the post-scaffold `pnpm rename`. undefined ⇒ prompt
+   *  when interactive, skip when not. */
+  appName?: string;
+  /** `--no-rename` disables the app-name prompt/rename step entirely. */
+  rename: boolean;
 }
 
 const HELP = `
@@ -91,6 +98,9 @@ ${pc.bold("Options")}
                           ${pc.dim(`(default: ${DEFAULT_REPO})`)}
   --ref <branch|tag>      Git ref of the default repo ${pc.dim(`(default: ${DEFAULT_REF})`)}
   --pm <pnpm|npm|yarn|bun>  Package manager for install ${pc.dim("(default: pnpm)")}
+  --name <display>        App display name — runs the template's ${pc.dim("pnpm rename")}
+                          after scaffolding ${pc.dim("(default: prompt / skip)")}
+  --no-rename             Keep the template's own branding (no prompt, no rename)
   --no-git                Do not run ${pc.dim("git init")}
   --no-install            Do not install dependencies
   --force                 Allow scaffolding into a non-empty directory
@@ -103,6 +113,7 @@ ${pc.bold("Options")}
 
 ${pc.bold("Examples")}
   npx create-shipwright my-app
+  npx create-shipwright my-app --name "Acme"
   npx create-shipwright my-app --ref v0.2.0 --pm npm
   npx create-shipwright my-app --no-install --no-git
   npx create-shipwright my-app --features payments,email
@@ -136,6 +147,7 @@ function parseArgs(argv: string[]): {
     install: true,
     force: false,
     dryRun: false,
+    rename: true,
   };
   let showHelp = false;
   let showVersion = false;
@@ -157,6 +169,16 @@ function parseArgs(argv: string[]): {
       case "--no-git":
         options.git = false;
         break;
+      case "--no-rename":
+        options.rename = false;
+        break;
+      case "--name": {
+        const value = argv[++i]?.trim() ?? "";
+        const invalid = value ? validateAppName(value) : "--name needs a value";
+        if (invalid) return { options, showHelp, showVersion, error: invalid };
+        options.appName = value;
+        break;
+      }
       case "--no-install":
         options.install = false;
         break;
@@ -248,6 +270,15 @@ function run(command: string, args: string[], cwd: string): boolean {
     stdio: "inherit",
     shell: process.platform === "win32",
   });
+  return result.status === 0;
+}
+
+/**
+ * Run a script with THIS node binary, no shell — `run()`'s Windows `shell:
+ * true` would re-split args on spaces, mangling display names like "My App".
+ */
+function runNode(args: string[], cwd: string): boolean {
+  const result = spawnSync(process.execPath, args, { cwd, stdio: "inherit" });
   return result.status === 0;
 }
 
@@ -358,6 +389,34 @@ async function main(): Promise<number> {
   }
   const dropped = OPTIONAL_FEATURES.filter((f) => !kept.has(f.key));
 
+  // 1c. Resolve the app display name for the post-scaffold rename. Interactive
+  // + no flag → prompt (suggesting a title-cased directory name; empty answer
+  // skips). Non-interactive + no flag → skip (zero regression). The rename
+  // itself is the TEMPLATE's own `scripts/rename.mjs`, run after download.
+  let appName = options.rename ? options.appName : undefined;
+  if (
+    options.rename &&
+    appName === undefined &&
+    process.stdout.isTTY &&
+    !options.dryRun
+  ) {
+    const answer = await prompts({
+      type: "text",
+      name: "appName",
+      message: 'App name? (brands the scaffold; empty keeps "Shipwright")',
+      initial: titleCaseFromDir(path.basename(path.resolve(process.cwd(), dir))),
+    });
+    const value = typeof answer.appName === "string" ? answer.appName.trim() : "";
+    if (value) {
+      const invalid = validateAppName(value);
+      if (invalid) {
+        console.error(`${pc.red("error")} ${invalid}`);
+        return 1;
+      }
+      appName = value;
+    }
+  }
+
   const targetDir = path.resolve(process.cwd(), dir);
   const projectName = path.basename(targetDir);
   const localTemplate = resolveLocalTemplate(options.template);
@@ -382,6 +441,7 @@ async function main(): Promise<number> {
   console.log(`  ${pc.dim("name      ")} ${projectName}`);
   console.log(`  ${pc.dim("directory ")} ${targetDir}`);
   console.log(`  ${pc.dim("template  ")} ${source}`);
+  console.log(`  ${pc.dim("app name  ")} ${appName ?? pc.dim('skip (keep "Shipwright")')}`);
   console.log(`  ${pc.dim("git init  ")} ${options.git ? pc.green("yes") : pc.dim("no")}`);
   console.log(`  ${pc.dim("install   ")} ${options.install ? `${pc.green("yes")} ${pc.dim(`(${pm})`)}` : pc.dim("no")}`);
   if (!empty) console.log(`  ${pc.dim("force     ")} ${pc.yellow("yes (target not empty)")}`);
@@ -426,6 +486,27 @@ async function main(): Promise<number> {
   } catch (err) {
     console.error(`\n${pc.red("error")} failed to fetch the template: ${(err as Error).message}`);
     return 1;
+  }
+
+  // 4b. Post-scaffold rename, BEFORE git init so the initial commit is already
+  // branded (no "Shipwright" in the new repo's history). Delegates to the
+  // template's own scripts/rename.mjs; --docs is included because the copied
+  // README/DEPLOY now document the owner's product.
+  if (appName) {
+    const renameScript = path.join(targetDir, "scripts", "rename.mjs");
+    if (!existsSync(renameScript)) {
+      console.log(
+        `  ${pc.yellow("warn")} this template has no scripts/rename.mjs (older ref?) — skipped. Rename manually later.`,
+      );
+    } else {
+      console.log(`${pc.dim("›")} Branding as ${pc.bold(appName)} …`);
+      const ok = runNode(["scripts/rename.mjs", appName, "--docs"], targetDir);
+      if (!ok) {
+        console.log(
+          `  ${pc.yellow("warn")} rename failed — run ${pc.cyan(`pnpm rename "${appName}"`)} yourself in ${projectName}.`,
+        );
+      }
+    }
   }
 
   // 5. Optional git init.

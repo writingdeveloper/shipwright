@@ -127,6 +127,11 @@ export const env = createEnv({
     // sitemap/robots/canonical URLs. Optional so a fresh clone runs with no
     // config; consumers default it to http://localhost:3000.
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+    // Optional public display name of the app (e.g. "Acme"), the one-variable
+    // rebrand knob: `apps/web/lib/site.ts` (SITE_NAME) and package-level
+    // defaults read this. Optional so a fresh clone runs with no config;
+    // consumers default it to "Shipwright".
+    NEXT_PUBLIC_APP_NAME: z.string().optional(),
     // PostHog project API key for product analytics (owned by `@repo/analytics`).
     // OPTIONAL: when unset, `@repo/analytics`'s `PostHogProvider` is a complete
     // no-op (it never loads posthog-js), so the app/tests/CI run with no
@@ -188,6 +193,7 @@ export const env = createEnv({
     STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,

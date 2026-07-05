@@ -14,7 +14,7 @@ import { env } from "../env";
  */
 export const SITE_URL = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-export const SITE_NAME = "Shipwright";
+export const SITE_NAME = env.NEXT_PUBLIC_APP_NAME ?? "Shipwright";
 
 export const SITE_DESCRIPTION =
   "AI-native Next.js + Turborepo starter for shipping MVPs fast.";

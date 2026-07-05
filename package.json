@@ -21,6 +21,8 @@
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=web",
     "gen": "turbo gen",
+    "rename": "node scripts/rename.mjs",
+    "test:rename": "node --test scripts/rename.test.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "turbo run build --filter=create-shipwright && changeset publish"

@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import "./globals.css";
 
+// Read the public app name directly rather than importing the composed `env`:
+// admin has no local .env, so pulling in @repo/env's SERVER-var validation here
+// could throw at runtime. A NEXT_PUBLIC_ var is inlined at build time.
+const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "Shipwright";
+
 export const metadata: Metadata = {
-  title: "Admin",
-  description: "Shipwright admin.",
+  title: `${appName} Admin`,
+  description: `${appName} admin.`,
 };
 
 export default async function RootLayout({

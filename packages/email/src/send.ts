@@ -127,7 +127,7 @@ export type SendWelcomeEmailArgs = {
   readonly to: string;
   /** The new user's name, for the greeting. */
   readonly name?: string;
-  /** Product name shown in the email. Defaults to "Shipwright". */
+  /** Product name shown in the email. Defaults to `NEXT_PUBLIC_APP_NAME` ?? "Shipwright". */
   readonly appName?: string;
   /** Optional CTA URL (e.g. the app's sign-in/dashboard URL). */
   readonly actionUrl?: string;
@@ -144,7 +144,7 @@ export type SendWelcomeEmailArgs = {
 export function sendWelcomeEmail(
   args: SendWelcomeEmailArgs,
 ): Promise<SendResult> {
-  const { to, name, appName = "Shipwright", actionUrl } = args;
+  const { to, name, appName = env.NEXT_PUBLIC_APP_NAME ?? "Shipwright", actionUrl } = args;
   return sendEmail({
     to,
     subject: `Welcome to ${appName}`,
@@ -158,7 +158,7 @@ export function sendPasswordResetEmail(args: {
   readonly url: string;
   readonly appName?: string;
 }): Promise<SendResult> {
-  const { to, url, appName = "Shipwright" } = args;
+  const { to, url, appName = env.NEXT_PUBLIC_APP_NAME ?? "Shipwright" } = args;
   return sendEmail({
     to,
     subject: `Reset your ${appName} password`,
@@ -176,7 +176,7 @@ export function sendPaymentFailedEmail(args: {
   readonly billingUrl: string;
   readonly appName?: string;
 }): Promise<SendResult> {
-  const { to, billingUrl, appName = "Shipwright" } = args;
+  const { to, billingUrl, appName = env.NEXT_PUBLIC_APP_NAME ?? "Shipwright" } = args;
   return sendEmail({
     to,
     subject: `Your ${appName} payment failed`,
@@ -190,7 +190,7 @@ export function sendVerificationEmail(args: {
   readonly url: string;
   readonly appName?: string;
 }): Promise<SendResult> {
-  const { to, url, appName = "Shipwright" } = args;
+  const { to, url, appName = env.NEXT_PUBLIC_APP_NAME ?? "Shipwright" } = args;
   return sendEmail({
     to,
     subject: `Verify your ${appName} email`,

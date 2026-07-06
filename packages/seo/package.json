@@ -19,16 +19,16 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
+    "@types/react": "19.2.17",
     "eslint": "^9.39.1",
     "typescript": "6.0.3",
     "vitest": "^4.1.9"
   },
   "dependencies": {
-    "next": "16.2.9",
-    "react": "^19.2.0"
+    "next": "16.2.10",
+    "react": "^19.2.7"
   },
   "peerDependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.7"
   }
 }

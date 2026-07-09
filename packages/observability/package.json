@@ -22,11 +22,11 @@
     "@types/node": "^22.15.3",
     "eslint": "^9.39.1",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@repo/env": "workspace:*",
-    "@sentry/nextjs": "^10.58.0",
-    "next": "16.2.9"
+    "@sentry/nextjs": "^10.64.0",
+    "next": "16.2.10"
   }
 }

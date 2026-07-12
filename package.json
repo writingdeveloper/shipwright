@@ -18,11 +18,12 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "test": "turbo run test && pnpm run test:rename",
+    "test": "turbo run test && pnpm run test:rename && pnpm run test:invariants",
     "test:e2e": "turbo run test:e2e --filter=web",
     "gen": "turbo gen",
     "rename": "node scripts/rename.mjs",
     "test:rename": "node --test scripts/rename.test.mjs",
+    "test:invariants": "node --test scripts/repo-invariants.test.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "turbo run build --filter=create-shipwright && changeset publish"
@@ -36,6 +37,6 @@
   },
   "packageManager": "pnpm@11.3.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   }
 }

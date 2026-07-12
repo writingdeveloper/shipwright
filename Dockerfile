@@ -12,7 +12,7 @@
 # self-contained server. The build runs INSIDE the container (not copied from the
 # host) so pnpm's per-platform symlinks + native deps (libSQL) resolve for Linux.
 #
-# Pinned to the repo's Node engine (>=20; we use 22) and pnpm (11.3.0).
+# Pinned to the repo's Node engine (>=22.13, required by pnpm 11.3) and pnpm (11.3.0).
 
 # ---- base: shared Node + pnpm via Corepack -----------------------------------
 FROM node:22-alpine AS base

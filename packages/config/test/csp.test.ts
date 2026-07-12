@@ -39,9 +39,19 @@ describe("buildContentSecurityPolicy (production)", () => {
     expect(csp).not.toContain("script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' 'unsafe-inline'");
   });
 
-  it("keeps the nonce on style-src in production", () => {
-    expect(csp).toContain(`style-src 'self' 'nonce-${nonce}'`);
-    expect(csp).not.toContain("'unsafe-inline' 'nonce-");
+  it("pins the exact style-src directive in production so no token can be appended or reordered", () => {
+    // Isolate the directive first (mirrors apps/web/e2e/security-headers.spec.ts),
+    // then assert exact equality. A substring check like `.not.toContain("'unsafe-inline' 'nonce-")`
+    // only rejects that ONE token order — it would sail right through the realistic
+    // regression of appending 'unsafe-inline' AFTER the nonce (the same array-join
+    // idiom `scriptSrc` uses above: `'nonce-<n>' 'unsafe-inline'`). Exact equality on
+    // the isolated directive can't be bypassed by reordering, appending, or inserting
+    // tokens. The trailing space in "style-src " is required so this doesn't also
+    // match "style-src-attr".
+    const styleSrcDirective = csp
+      .split("; ")
+      .find((d) => d.startsWith("style-src "));
+    expect(styleSrcDirective).toBe(`style-src 'self' 'nonce-${nonce}'`);
   });
 
   it("includes the core hardening directives", () => {
@@ -77,8 +87,12 @@ describe("buildContentSecurityPolicy (development)", () => {
     // both (as this used to) means the dev server's un-nonced inline styles are
     // still blocked — the relaxation is a no-op and the console fills with
     // violations. In dev we therefore drop the nonce from style-src only.
-    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
-    expect(csp).not.toContain("style-src 'self' 'nonce-N'");
+    // Exact-equality on the isolated directive, same contract as the prod guard
+    // above — the two modes now read the same way.
+    const styleSrcDirective = csp
+      .split("; ")
+      .find((d) => d.startsWith("style-src "));
+    expect(styleSrcDirective).toBe("style-src 'self' 'unsafe-inline'");
   });
 });
 

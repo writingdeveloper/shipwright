@@ -21,9 +21,12 @@ export type CspOptions = {
   nonce: string;
   /**
    * Development relaxations. In dev, React uses `eval` for richer error overlays
-   * (`'unsafe-eval'`), and the dev server injects un-nonced inline styles, so
-   * `style-src` also needs `'unsafe-inline'`. NEITHER is emitted in production —
-   * a production policy must not weaken `script-src`/`style-src` this way.
+   * (`'unsafe-eval'` on `script-src`), and the dev server injects un-nonced inline
+   * `<style>`, so `style-src` DROPS the nonce and uses `'unsafe-inline'` instead —
+   * a nonce makes the browser ignore `'unsafe-inline'` on that same directive, so
+   * emitting both would leave those dev styles blocked. NEITHER relaxation is
+   * emitted in production: `style-src` keeps the nonce there, and `'unsafe-inline'`
+   * never appears on `script-src`/`style-src`.
    */
   isDev?: boolean;
   /**

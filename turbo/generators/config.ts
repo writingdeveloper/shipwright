@@ -11,7 +11,7 @@ import type { PlopTypes } from "@turbo/gen";
  * Run head-lessly (scriptable, e.g. from a Claude skill) via Turbo's `--args`
  * flag — one positional per prompt, in order (NOT `-- name`, which Turbo rejects):
  *   pnpm gen package --args my-pkg
- *   pnpm gen app --args my-app 3400          # plain app
+ *   pnpm gen app --args my-app 3400 false    # plain app
  *   pnpm gen app --args my-app 3400 true     # PWA app (installable + offline)
  *   pnpm gen react-component --args my-thing
  *

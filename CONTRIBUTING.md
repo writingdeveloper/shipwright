@@ -64,7 +64,7 @@ freshly generated workspace passes `pnpm install && pnpm check-types && pnpm lin
 | Command | What it scaffolds |
 | --- | --- |
 | `pnpm gen package` | `packages/<name>` — a `@repo/<name>` TypeScript library (shared tsconfig/eslint, `exports` → `src/index.ts`), like `@repo/env` |
-| `pnpm gen app` | `apps/<name>` — a minimal Next.js 16 App-Router app wired to `@repo/ui` (default dev port **3200**; web is 3000, e2e 3100) |
+| `pnpm gen app` | `apps/<name>` — a minimal Next.js 16 App-Router app wired to `@repo/ui` (default dev port **3400**; 3000/3100/3200/3300 are taken by web + admin) |
 | `pnpm gen react-component` | `packages/ui/src/components/ui/<name>.tsx` — a typed `@repo/ui` component stub (also runnable via `pnpm --filter @repo/ui generate:component`) |
 
 Names must be **kebab-case** (`payments`, `rate-limit`); the generator derives
@@ -74,12 +74,14 @@ After generating, run `pnpm install` so pnpm links the new workspace.
 
 ### Non-interactive (scriptable) runs
 
-Bypass the prompts by passing the answers to `--args` in prompt order (for
-`app`, the second arg is the dev port):
+Bypass the prompts by passing the answers to `--args` in prompt order. `app`
+takes three positionals — name, dev port, and whether to make it a PWA — and
+**all three are required**: omit the PWA arg and plop drops into an
+interactive confirm prompt that hangs forever without a TTY to answer it.
 
 ```sh
 pnpm gen package --args my-pkg
-pnpm gen app --args my-app 3200
+pnpm gen app --args my-app 3400 false
 pnpm gen react-component --args my-widget
 ```
 

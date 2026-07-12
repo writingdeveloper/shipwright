@@ -11,9 +11,12 @@ import type { PlopTypes } from "@turbo/gen";
  * Run head-lessly (scriptable, e.g. from a Claude skill) via Turbo's `--args`
  * flag — one positional per prompt, in order (NOT `-- name`, which Turbo rejects):
  *   pnpm gen package --args my-pkg
- *   pnpm gen app --args my-app 3200          # plain app
- *   pnpm gen app --args my-app 3200 true     # PWA app (installable + offline)
+ *   pnpm gen app --args my-app 3400          # plain app
+ *   pnpm gen app --args my-app 3400 true     # PWA app (installable + offline)
  *   pnpm gen react-component --args my-thing
+ *
+ * `app`'s third arg (pwa) is required when run head-lessly: omit it and plop falls
+ * back to an interactive confirm prompt, which hangs forever without a TTY.
  *
  * Each generated package/app is wired to the shared `@repo/*` config and passes
  * `pnpm install && pnpm check-types && lint && build` with zero manual edits.
@@ -21,6 +24,12 @@ import type { PlopTypes } from "@turbo/gen";
 
 /** Reject anything that isn't lower-case kebab-case (the repo's package convention). */
 const KEBAB_CASE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+
+/**
+ * First dev port not already taken: 3000 = web dev, 3100 = web e2e, 3200 = admin dev,
+ * 3300 = admin e2e (see each app's playwright.config.ts).
+ */
+const DEFAULT_APP_PORT = "3400";
 
 function validateKebab(input: unknown): true | string {
   if (typeof input !== "string" || input.trim().length === 0) {
@@ -51,7 +60,7 @@ const PACKAGE_PROMPTS: PlopTypes.PromptQuestion[] = [
   },
 ];
 
-const PACKAGE_ACTIONS: PlopTypes.ActionType[] = [
+const PACKAGE_FILE_ACTIONS: PlopTypes.ActionType[] = [
   {
     type: "add",
     path: "packages/{{ dashCase name }}/package.json",
@@ -72,13 +81,27 @@ const PACKAGE_ACTIONS: PlopTypes.ActionType[] = [
     path: "packages/{{ dashCase name }}/src/index.ts",
     templateFile: "templates/package/src/index.ts.hbs",
   },
-  "\nScaffolded packages/{{ dashCase name }} (@repo/{{ dashCase name }}). Run `pnpm install` to link it.",
 ];
+
+/**
+ * Plop prints STRING actions verbatim — it does not run them through Handlebars — so a
+ * literal "{{ dashCase name }}" would reach the user. Build the message from the actual
+ * answers instead. (Names are validated as kebab-case, so `name` is already dash-cased.)
+ */
+function packageActions(
+  data?: Record<string, unknown>,
+): PlopTypes.ActionType[] {
+  const name = String(data?.name ?? "").trim();
+  return [
+    ...PACKAGE_FILE_ACTIONS,
+    `\nScaffolded packages/${name} (@repo/${name}). Run \`pnpm install\` to link it.`,
+  ];
+}
 
 // ---------------------------------------------------------------------------
 // app — a Next.js 16 App-Router app under apps/<name>, wired to @repo/ui like
-// apps/web. Defaults to dev port 3200 (web=3000, e2e=3100 are taken). With the
-// `pwa` option it also scaffolds an installable + offline PWA.
+// apps/web. Defaults to dev port 3400 (3000/3100/3200/3300 are taken by web +
+// admin). With the `pwa` option it also scaffolds an installable + offline PWA.
 // ---------------------------------------------------------------------------
 const APP_PROMPTS: PlopTypes.PromptQuestion[] = [
   {
@@ -90,8 +113,8 @@ const APP_PROMPTS: PlopTypes.PromptQuestion[] = [
   {
     type: "input",
     name: "port",
-    message: "Dev port (web=3000, e2e=3100 are taken):",
-    default: "3200",
+    message: "Dev port (3000/3100/3200/3300 are taken by web + admin):",
+    default: DEFAULT_APP_PORT,
     validate: (input: unknown) => {
       const value = String(input).trim();
       if (!/^\d{2,5}$/.test(value)) return "Port must be a number.";
@@ -132,11 +155,13 @@ const APP_PWA_ACTIONS: PlopTypes.ActionType[] = [
 
 /** App actions: base files + (PWA files when chosen) + a next-steps note. */
 function appActions(data?: Record<string, unknown>): PlopTypes.ActionType[] {
+  const name = String(data?.name ?? "").trim();
+  const port = String(data?.port ?? DEFAULT_APP_PORT).trim();
   const pwa = isTruthy(data?.pwa) ? APP_PWA_ACTIONS : [];
   return [
     ...APP_BASE_ACTIONS,
     ...pwa,
-    "\nScaffolded apps/{{ dashCase name }}. Run `pnpm install`, then `pnpm dev --filter={{ dashCase name }}` (port {{ port }}).",
+    `\nScaffolded apps/${name}. Run \`pnpm install\`, then \`pnpm dev --filter=${name}\` (port ${port}).`,
   ];
 }
 
@@ -144,25 +169,34 @@ function appActions(data?: Record<string, unknown>): PlopTypes.ActionType[] {
 // react-component — a typed @repo/ui component stub at
 // packages/ui/src/components/ui/<name>.tsx (matching button.tsx / card.tsx).
 // ---------------------------------------------------------------------------
-const REACT_COMPONENT_ACTIONS: PlopTypes.ActionType[] = [
+const REACT_COMPONENT_FILE_ACTIONS: PlopTypes.ActionType[] = [
   {
     type: "add",
     path: "packages/ui/src/components/ui/{{ dashCase name }}.tsx",
     templateFile: "templates/react-component/component.tsx.hbs",
   },
-  "\nScaffolded packages/ui/src/components/ui/{{ dashCase name }}.tsx. Import it as `@repo/ui/components/ui/{{ dashCase name }}`.",
 ];
+
+function reactComponentActions(
+  data?: Record<string, unknown>,
+): PlopTypes.ActionType[] {
+  const name = String(data?.name ?? "").trim();
+  return [
+    ...REACT_COMPONENT_FILE_ACTIONS,
+    `\nScaffolded packages/ui/src/components/ui/${name}.tsx. Import it as \`@repo/ui/components/ui/${name}\`.`,
+  ];
+}
 
 export default function generator(plop: PlopTypes.NodePlopAPI): void {
   plop.setGenerator("package", {
     description: "Add a new @repo/* TypeScript package under packages/",
     prompts: PACKAGE_PROMPTS,
-    actions: PACKAGE_ACTIONS,
+    actions: packageActions,
   });
   plop.setGenerator("add-package", {
     description: "Alias for `package`.",
     prompts: PACKAGE_PROMPTS,
-    actions: PACKAGE_ACTIONS,
+    actions: packageActions,
   });
 
   plop.setGenerator("app", {
@@ -186,6 +220,6 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         validate: validateKebab,
       },
     ],
-    actions: REACT_COMPONENT_ACTIONS,
+    actions: reactComponentActions,
   });
 }

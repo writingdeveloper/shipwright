@@ -39,6 +39,11 @@ describe("buildContentSecurityPolicy (production)", () => {
     expect(csp).not.toContain("script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' 'unsafe-inline'");
   });
 
+  it("keeps the nonce on style-src in production", () => {
+    expect(csp).toContain(`style-src 'self' 'nonce-${nonce}'`);
+    expect(csp).not.toContain("'unsafe-inline' 'nonce-");
+  });
+
   it("includes the core hardening directives", () => {
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
@@ -67,8 +72,13 @@ describe("buildContentSecurityPolicy (development)", () => {
     expect(csp).toContain("'unsafe-eval'");
   });
 
-  it("adds unsafe-inline to style-src for the dev server's un-nonced styles", () => {
-    expect(csp).toContain("style-src 'self' 'nonce-N' 'unsafe-inline'");
+  it("drops the nonce from style-src in dev so 'unsafe-inline' actually applies", () => {
+    // Per the CSP spec a nonce makes the browser IGNORE 'unsafe-inline'. Emitting
+    // both (as this used to) means the dev server's un-nonced inline styles are
+    // still blocked — the relaxation is a no-op and the console fills with
+    // violations. In dev we therefore drop the nonce from style-src only.
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(csp).not.toContain("style-src 'self' 'nonce-N'");
   });
 });
 

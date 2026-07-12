@@ -58,9 +58,10 @@ export function generateNonce(): string {
  *   makes a CSP-aware browser ignore `'self'`/host sources for scripts so an
  *   injected `<script src>` is blocked. `'unsafe-eval'` is added in dev only.
  * - `style-src 'self' 'nonce-<n>'` — same-origin stylesheets plus Next/`next/font`
- *   inline `<style>` carrying the nonce. Dev adds `'unsafe-inline'` for the dev
- *   server's un-nonced styles (a nonce + `'unsafe-inline'` is contradictory, so
- *   this is dev-only; prod stays strict).
+ *   inline `<style>` carrying the nonce. In DEV the nonce is dropped and
+ *   `'unsafe-inline'` used instead: a nonce makes the browser ignore
+ *   `'unsafe-inline'`, so emitting both would leave the dev server's un-nonced
+ *   styles blocked. Production keeps the nonce and never gets `'unsafe-inline'`.
  * - `style-src-attr 'unsafe-inline'` — nonces cannot cover inline `style="…"`
  *   ATTRIBUTES (only `<style>` elements), and some libraries set them. This
  *   narrowly allows style attributes WITHOUT loosening `<style>`/script policy.
@@ -90,11 +91,13 @@ export function buildContentSecurityPolicy(options: CspOptions): string {
     ...(isDev ? ["'unsafe-eval'"] : []),
   ].join(" ");
 
-  const styleSrc = [
-    "'self'",
-    `'nonce-${nonce}'`,
-    ...(isDev ? ["'unsafe-inline'"] : []),
-  ].join(" ");
+  // In DEV the Next dev server injects un-nonced inline <style>. A nonce makes the
+  // browser IGNORE 'unsafe-inline' entirely (CSP spec), so emitting both leaves those
+  // styles blocked and floods the console with violations. Dev therefore uses
+  // 'unsafe-inline' WITHOUT a nonce; production keeps the nonce and stays strict.
+  const styleSrc = isDev
+    ? ["'self'", "'unsafe-inline'"].join(" ")
+    : ["'self'", `'nonce-${nonce}'`].join(" ");
 
   const connect = ["'self'", ...connectSrc].join(" ");
 

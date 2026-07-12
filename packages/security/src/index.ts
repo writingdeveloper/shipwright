@@ -22,6 +22,7 @@ export {
   type RateLimiter,
   type RateLimitOptions,
   type RateLimitResult,
+  warnIfRateLimitNotDistributed,
 } from "./ratelimit";
 
 export {

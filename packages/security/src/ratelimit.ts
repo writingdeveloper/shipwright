@@ -1,4 +1,4 @@
-import { upstashCredentials } from "./config";
+import { isDistributedRateLimitEnabled, upstashCredentials } from "./config";
 
 /**
  * @repo/security — a pluggable rate limiter with a tiny, stable surface.
@@ -202,6 +202,42 @@ class UpstashRateLimiter implements RateLimiter {
   }
 }
 
+/** Once-only guard so N limiters at module scope produce ONE warning, not N. */
+let warnedNotDistributed = false;
+
+/**
+ * Warn ONCE, in production only, when the limiter falls back to the in-memory
+ * backend.
+ *
+ * This is not a style nit. An in-memory sliding window is PER-INSTANCE, so on
+ * a multi-instance host (Vercel, or any autoscaler) the effective limit is
+ * `limit × instances` — and the instance count GROWS with load, so a credential-
+ * stuffing burst scales the very ceiling meant to stop it. Cold starts reset the
+ * window outright. `isDistributedRateLimitEnabled()` existed for precisely this
+ * check and was never called.
+ *
+ * `log` is injectable so the unit test can assert without touching the console.
+ */
+export function warnIfRateLimitNotDistributed(
+  log: (message: string) => void = console.warn,
+): void {
+  if (warnedNotDistributed) return;
+  if (process.env.NODE_ENV !== "production") return;
+  if (isDistributedRateLimitEnabled()) return;
+  warnedNotDistributed = true;
+  log(
+    "[@repo/security] Rate limiting is using the IN-MEMORY backend in production. " +
+      "That window is per-instance, so on a multi-instance host the real limit is " +
+      "limit × instances, and cold starts reset it. Set UPSTASH_REDIS_REST_URL and " +
+      "UPSTASH_REDIS_REST_TOKEN to share one window across instances.",
+  );
+}
+
+/** Test seam: clear the once-only guard so each test starts fresh. */
+export function resetRateLimitWarning(): void {
+  warnedNotDistributed = false;
+}
+
 /**
  * Build a {@link RateLimiter}, choosing the backend automatically:
  * Upstash when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set,
@@ -217,5 +253,6 @@ export function createRateLimiter(options: RateLimitOptions): RateLimiter {
   if (creds) {
     return new UpstashRateLimiter(options, creds);
   }
+  warnIfRateLimitNotDistributed();
   return new InMemoryRateLimiter(options);
 }

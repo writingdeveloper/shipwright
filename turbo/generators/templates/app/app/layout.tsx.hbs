@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-{{#if pwa}}import { ServiceWorkerProvider } from "@repo/pwa/register";
+{{#if pwa}}import { connection } from "next/server";
+import { ServiceWorkerProvider } from "@repo/pwa/register";
 {{/if}}import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,12 +8,20 @@ export const metadata: Metadata = {
   description: "{{ titleCase name }} — scaffolded with `pnpm gen app`.",
 };
 
-export default function RootLayout({
+export default {{#if pwa}}async {{/if}}function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+{{#if pwa}}  // Opt into dynamic rendering so the per-request CSP nonce minted in `proxy.ts`
+  // reaches Next's scripts. Without this the page prerenders statically, carries no
+  // nonce, and the strict policy ('strict-dynamic' makes the browser ignore 'self')
+  // blocks EVERY script — the page ships as dead HTML that never hydrates. `pnpm dev`
+  // hides this; only the production build shows it.
+  // See https://nextjs.org/docs/app/guides/content-security-policy.
+  await connection();
+
+{{/if}}  return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
 {{#if pwa}}        <ServiceWorkerProvider />

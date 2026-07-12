@@ -97,3 +97,45 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  scaffold-smoke:
+    name: Scaffold smoke — a generated PWA app hydrates under its own nonce CSP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SMOKE_APP: csp-smoke
+      SMOKE_PORT: "3400"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.3.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `pnpm gen app` is the starter's headline feature. Nothing verified that what
+      # it produces actually WORKS in production: a generated PWA app carries a nonce
+      # CSP, and a root layout that does not `await connection()` prerenders without
+      # the nonce, so 'strict-dynamic' blocks every script and the page never
+      # hydrates. Dev looks perfect. This job is the only thing that sees it.
+      - name: Scaffold a PWA app
+        run: pnpm gen app --args csp-smoke 3400 true
+
+      - name: Link the new workspace
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build it
+        run: pnpm build --filter=csp-smoke
+
+      - name: Assert every script carries the CSP nonce
+        run: node scripts/gen-app-smoke.mjs

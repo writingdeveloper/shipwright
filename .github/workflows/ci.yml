@@ -58,7 +58,7 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Unit tests (Vitest)
+      - name: Test (Vitest + repo-invariants via node:test)
         run: pnpm test
 
       - name: Install Playwright browser
@@ -76,7 +76,7 @@ jobs:
         run: pnpm audit --audit-level moderate
 
   docker:
-    name: Docker image builds
+    name: Docker image builds and runs
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -90,29 +90,72 @@ jobs:
       # missing workspace manifest in milliseconds; this job is the proof that the
       # whole multi-stage build still works. Without it the Dockerfile rots
       # silently — it did, for three weeks, while packages landed around it.
+      #
+      # `load: true` pulls the built image into the local Docker daemon (instead of
+      # just proving the build succeeds) so the steps below can actually run it —
+      # a build-only gate only proves the `deps` and `builder` stages; it proves
+      # NOTHING about `runner` (the standalone COPY paths, the non-root user,
+      # HOSTNAME, CMD), all of which can be silently wrong while `docker build`
+      # stays green.
       - name: Build the production image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: false
+          load: true
+          tags: shipwright-web:ci
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # mode=min exports only the FINAL stage's layers. mode=max would also
+          # export deps/builder — the full pnpm store + node_modules for 21
+          # workspaces, plus source + .next — plausibly multiple GB per push.
+          # GitHub's Actions cache is 10 GB PER REPO and LRU-evicted, and that
+          # budget is shared with the setup-node pnpm caches `verify` (x2 Node
+          # legs) and `scaffold-smoke` also draw on. Do not "helpfully" bump this
+          # back to max — the likely result is the docker cache evicting those
+          # pnpm caches and every job getting slower.
+          cache-to: type=gha,mode=min
+
+      # A build-only gate never exercises the `runner` stage. Boot the image for
+      # real and hit the liveness endpoint (apps/web/app/api/health/route.ts —
+      # deliberately DB-free) so a broken runner fails CI instead of shipping.
+      - name: Run the image
+        run: |
+          docker run -d --name web -p 3000:3000 \
+            -e BETTER_AUTH_SECRET=ci-placeholder-secret-not-a-real-key-0123456789 \
+            -e BETTER_AUTH_URL=http://localhost:3000 \
+            -e DATABASE_URL=file:local.db \
+            shipwright-web:ci
+
+      - name: Wait for the health endpoint
+        run: curl --retry 15 --retry-all-errors --retry-delay 2 -fsS http://localhost:3000/api/health
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker logs web
+
+      - name: Stop the container
+        if: always()
+        run: docker rm -f web
 
   scaffold-smoke:
-    name: Scaffold smoke — a generated PWA app hydrates under its own nonce CSP
+    name: Scaffold smoke — generated apps check-types/lint/build, PWA hydrates
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       SMOKE_APP: csp-smoke
       SMOKE_PORT: "3400"
+      PLAIN_APP: plain-smoke
+      PLAIN_PORT: "3401"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # No `version:` here — pnpm/action-setup reads `packageManager` from
+      # package.json when it's omitted, which is the same field the engines
+      # invariant (scripts/repo-invariants.test.mjs) derives its floor from. One
+      # source of truth instead of a second hardcoded pnpm version to drift.
       - name: Install pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 11.3.0
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -129,13 +172,35 @@ jobs:
       # the nonce, so 'strict-dynamic' blocks every script and the page never
       # hydrates. Dev looks perfect. This job is the only thing that sees it.
       - name: Scaffold a PWA app
-        run: pnpm gen app --args csp-smoke 3400 true
+        run: pnpm gen app --args ${{ env.SMOKE_APP }} ${{ env.SMOKE_PORT }} true
 
-      - name: Link the new workspace
+      # `pwa` defaults to false, so the PLAIN variant is what most `pnpm gen app`
+      # users actually get — and it is the one variant the PWA-only job above never
+      # renders. Without this, the `{{#if pwa}}`-false branches of layout.tsx.hbs,
+      # next.config.ts.hbs, and package.json.hbs are never compiled by CI at all.
+      - name: Scaffold a plain app
+        run: pnpm gen app --args ${{ env.PLAIN_APP }} ${{ env.PLAIN_PORT }} false
+
+      - name: Link the new workspaces
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build it
-        run: pnpm build --filter=csp-smoke
+      # CONTRIBUTING.md promises a freshly generated workspace passes `pnpm
+      # check-types && pnpm lint && pnpm build` with zero manual edits — exercise
+      # all three, for both variants. Invoked via `turbo run` directly (not the
+      # root `pnpm check-types` script, which is `turbo run check-types && tsc
+      # --noEmit -p turbo/generators/tsconfig.json`) — appending `--filter` to that
+      # compound script would bind it to the trailing `tsc` command, not to turbo.
+      - name: Type-check both generated apps
+        run: pnpm exec turbo run check-types --filter=${{ env.SMOKE_APP }} --filter=${{ env.PLAIN_APP }}
 
-      - name: Assert every script carries the CSP nonce
+      - name: Lint both generated apps
+        run: pnpm exec turbo run lint --filter=${{ env.SMOKE_APP }} --filter=${{ env.PLAIN_APP }}
+
+      - name: Build both generated apps
+        run: pnpm exec turbo run build --filter=${{ env.SMOKE_APP }} --filter=${{ env.PLAIN_APP }}
+
+      # The plain app has no proxy.ts / CSP, so it has no nonce to assert — that is
+      # correct and intentional. Only the PWA app is checked here (gen-app-smoke.mjs
+      # defaults to SMOKE_APP/SMOKE_PORT, set above).
+      - name: Assert the PWA app's scripts carry the CSP nonce
         run: node scripts/gen-app-smoke.mjs

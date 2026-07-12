@@ -76,6 +76,53 @@ const subdirs = (relDir) =>
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name);
 
+/** Every workspace that pnpm must see to resolve the dependency graph. */
+function workspaceManifests() {
+  const found = [];
+  for (const root of ["apps", "packages"]) {
+    for (const name of subdirs(root)) {
+      const rel = `${root}/${name}/package.json`;
+      if (existsSync(join(repoRoot, rel))) found.push(rel);
+    }
+  }
+  return found.sort();
+}
+
+/**
+ * `workspaceManifests()` above (and the TypeScript-pin test below) hardcode the
+ * workspace globs `apps/*` and `packages/*` instead of parsing them out of
+ * `pnpm-workspace.yaml` — that keeps this suite dependency-free (plain
+ * `readdirSync`, no YAML parser), but it is only safe as long as those literals
+ * match pnpm's real config. If a third glob is ever added (e.g. `tooling/*`),
+ * pnpm would resolve those workspaces fine — but this suite would silently stop
+ * checking them, staying green while the Dockerfile's deps stage (and the
+ * TypeScript pin) quietly stopped covering them too. This test is the tripwire:
+ * it fails loudly instead of letting the suite's scope narrow in silence.
+ */
+test("pnpm-workspace.yaml's package globs are exactly the ones this suite walks", () => {
+  const workspaceYaml = read("pnpm-workspace.yaml");
+  // `\r?\n` throughout: this file (like the rest of the repo, on a Windows/CRLF
+  // checkout) may use CRLF line endings, and a bare `\n` would never match "the
+  // line right after `packages:`" when the real byte there is `\r`.
+  const packagesBlock = workspaceYaml.match(/^packages:\r?\n((?:[ \t]+-.*\r?\n?)+)/m);
+  assert.ok(packagesBlock, "pnpm-workspace.yaml must have a top-level `packages:` list.");
+
+  const globs = packagesBlock[1]
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^-\s*/, "").replace(/^["']|["']$/g, ""));
+
+  assert.deepEqual(
+    globs,
+    ["apps/*", "packages/*"],
+    `pnpm-workspace.yaml's package globs are now ${JSON.stringify(globs)}, not the ` +
+      '["apps/*", "packages/*"] this suite hardcodes — a new workspace glob was added. ' +
+      "Teach workspaceManifests() (and the TypeScript-pin test's workspace walk) about it, " +
+      "or the Docker and TypeScript gates will silently stop covering it.",
+  );
+});
+
 test("one TypeScript version governs every workspace and generator template", () => {
   const rootPin = readJson("package.json").devDependencies.typescript;
   const offenders = [];
@@ -91,13 +138,11 @@ test("one TypeScript version governs every workspace and generator template", ()
     if (pinned !== undefined && pinned !== rootPin) offenders.push({ relPath, pinned });
   };
 
-  // Every workspace manifest (apps/*/package.json, packages/*/package.json).
-  for (const group of ["apps", "packages"]) {
-    for (const name of subdirs(group)) {
-      const relPath = join(group, name, "package.json");
-      if (existsSync(join(repoRoot, relPath))) checkExactManifest(relPath);
-    }
-  }
+  // Every workspace manifest (apps/*/package.json, packages/*/package.json). Shares
+  // workspaceManifests() with the Dockerfile test below so there is exactly ONE walk
+  // of the workspace tree, and one path format (forward slashes, even on Windows) in
+  // every failure message this suite prints.
+  for (const relPath of workspaceManifests()) checkExactManifest(relPath);
 
   // Every generator template's package.json.hbs. These aren't valid JSON (they
   // contain raw Handlebars block helpers like `{{#if pwa}}` outside of string
@@ -124,17 +169,8 @@ test("one TypeScript version governs every workspace and generator template", ()
   );
 });
 
-/** Every workspace that pnpm must see to resolve the dependency graph. */
-function workspaceManifests() {
-  const found = [];
-  for (const root of ["apps", "packages"]) {
-    for (const name of subdirs(root)) {
-      const rel = `${root}/${name}/package.json`;
-      if (existsSync(join(repoRoot, rel))) found.push(rel);
-    }
-  }
-  return found.sort();
-}
+/** The one `COPY` line that makes `<dir>/package.json` reachable inside `deps`. */
+const copyLineFor = (rel) => `COPY ${rel} ./${rel.slice(0, -"/package.json".length)}/`;
 
 test("the Dockerfile's deps stage copies every workspace manifest", () => {
   const dockerfile = read("Dockerfile");
@@ -166,8 +202,7 @@ test("the Dockerfile's deps stage copies every workspace manifest", () => {
   // wrong stage, or one landing at the wrong destination all leave the
   // manifest unreachable even though its name appears in the file somewhere.
   const missing = workspaceManifests().filter((rel) => {
-    const dir = rel.slice(0, -"/package.json".length);
-    const expected = `COPY ${rel} ./${dir}/`;
+    const expected = copyLineFor(rel);
     return !depsLines.some((line) => {
       const trimmed = line.trim();
       return !trimmed.startsWith("#") && trimmed === expected;
@@ -181,6 +216,9 @@ test("the Dockerfile's deps stage copies every workspace manifest", () => {
       "`COPY <manifest> ./<dir>/` line for it inside the `deps` stage (a commented-out COPY, " +
       "one in the wrong stage, or one with the wrong destination all count as missing). " +
       "pnpm cannot resolve the workspace graph without it, so `pnpm install --frozen-lockfile` " +
-      "fails and the image does not build at all.",
+      "fails and the image does not build at all. This is very likely because you just ran " +
+      "`pnpm gen app` or `pnpm gen package` — the generator does not (and cannot) edit the " +
+      "Dockerfile for you. Add the following line(s) to the Dockerfile's `deps` stage:\n" +
+      missing.map((rel) => `  ${copyLineFor(rel)}`).join("\n"),
   );
 });

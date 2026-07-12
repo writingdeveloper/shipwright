@@ -94,7 +94,9 @@ function packageActions(
   const name = String(data?.name ?? "").trim();
   return [
     ...PACKAGE_FILE_ACTIONS,
-    `\nScaffolded packages/${name} (@repo/${name}). Run \`pnpm install\` to link it.`,
+    `\nScaffolded packages/${name} (@repo/${name}). Run \`pnpm install\` to link it.\n` +
+      `Add \`COPY packages/${name}/package.json ./packages/${name}/\` to the Dockerfile's ` +
+      `deps stage — pnpm needs every workspace manifest there, and \`pnpm test\` enforces it.`,
   ];
 }
 
@@ -161,7 +163,9 @@ function appActions(data?: Record<string, unknown>): PlopTypes.ActionType[] {
   return [
     ...APP_BASE_ACTIONS,
     ...pwa,
-    `\nScaffolded apps/${name}. Run \`pnpm install\`, then \`pnpm dev --filter=${name}\` (port ${port}).`,
+    `\nScaffolded apps/${name}. Run \`pnpm install\`, then \`pnpm dev --filter=${name}\` (port ${port}).\n` +
+      `Add \`COPY apps/${name}/package.json ./apps/${name}/\` to the Dockerfile's deps stage ` +
+      `— pnpm needs every workspace manifest there, and \`pnpm test\` enforces it.`,
   ];
 }
 

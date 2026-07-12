@@ -70,7 +70,9 @@ freshly generated workspace passes `pnpm install && pnpm check-types && pnpm lin
 Names must be **kebab-case** (`payments`, `rate-limit`); the generator derives
 `@repo/<name>`, the export identifier, and the component name from it.
 
-After generating, run `pnpm install` so pnpm links the new workspace.
+After generating, run `pnpm install` so pnpm links the new workspace. Then add the new
+manifest's `COPY` line to the Dockerfile's `deps` stage (e.g. `COPY apps/<name>/package.json
+./apps/<name>/`) — `pnpm test` fails with the exact line to paste if you forget.
 
 ### Non-interactive (scriptable) runs
 

@@ -138,12 +138,49 @@ function workspaceManifests() {
 
 test("the Dockerfile's deps stage copies every workspace manifest", () => {
   const dockerfile = read("Dockerfile");
-  const missing = workspaceManifests().filter(
-    (rel) => !dockerfile.includes(`COPY ${rel} `),
+  const lines = dockerfile.split("\n");
+
+  // Scope the check to the `deps` stage: from its `FROM ... AS deps` line up
+  // to (but excluding) the next `FROM` line, or EOF if `deps` is the last
+  // stage. `pnpm install --frozen-lockfile` runs inside `deps`, not `builder`
+  // or `runner` — a COPY anywhere else does not help pnpm resolve the
+  // workspace graph.
+  const depsStart = lines.findIndex((line) =>
+    /^FROM\s+\S+\s+AS\s+deps\s*$/i.test(line.trim()),
   );
+  assert.ok(
+    depsStart !== -1,
+    "Dockerfile has no `FROM ... AS deps` stage. `pnpm install --frozen-lockfile` (and every " +
+      "workspace manifest this test checks for) is expected to run there — without the stage " +
+      "itself, an empty slice would make every check below vacuously pass.",
+  );
+  const nextFromOffset = lines
+    .slice(depsStart + 1)
+    .findIndex((line) => /^FROM\s+/i.test(line.trim()));
+  const depsEnd = nextFromOffset === -1 ? lines.length : depsStart + 1 + nextFromOffset;
+  const depsLines = lines.slice(depsStart + 1, depsEnd);
+
+  // For a manifest at `<dir>/package.json`, only a real (non-comment) line
+  // reading exactly `COPY <dir>/package.json ./<dir>/` counts. pnpm resolves
+  // workspaces by their path inside /app, so a commented-out line, one in the
+  // wrong stage, or one landing at the wrong destination all leave the
+  // manifest unreachable even though its name appears in the file somewhere.
+  const missing = workspaceManifests().filter((rel) => {
+    const dir = rel.slice(0, -"/package.json".length);
+    const expected = `COPY ${rel} ./${dir}/`;
+    return !depsLines.some((line) => {
+      const trimmed = line.trim();
+      return !trimmed.startsWith("#") && trimmed === expected;
+    });
+  });
+
   assert.deepEqual(
     missing,
     [],
-    `The deps stage is missing ${missing.length} workspace manifest(s). pnpm needs EVERY manifest to build the workspace graph, so \`pnpm install --frozen-lockfile\` fails outright without them — the image simply does not build.`,
+    `The deps stage is missing ${missing.length} workspace manifest(s) — no active ` +
+      "`COPY <manifest> ./<dir>/` line for it inside the `deps` stage (a commented-out COPY, " +
+      "one in the wrong stage, or one with the wrong destination all count as missing). " +
+      "pnpm cannot resolve the workspace graph without it, so `pnpm install --frozen-lockfile` " +
+      "fails and the image does not build at all.",
   );
 });

@@ -174,6 +174,17 @@ jobs:
       - name: Scaffold a PWA app
         run: pnpm gen app --args ${{ env.SMOKE_APP }} ${{ env.SMOKE_PORT }} true
 
+      # Link BEFORE scaffolding the next one — the two scaffolds cannot be adjacent.
+      # `pnpm gen` is a pnpm SCRIPT, and pnpm 11 runs a deps-status check before any
+      # script. Once the first scaffold adds a workspace the lockfile is out of date,
+      # so the NEXT `pnpm gen` fires an implicit install — which defaults to
+      # --frozen-lockfile in CI and dies with ERR_PNPM_OUTDATED_LOCKFILE. Locally
+      # frozen-lockfile is off, so the implicit install quietly succeeds and this
+      # only ever fails in CI. Reproduce the failure locally with:
+      #   CI=true pnpm gen app --args a 3990 true && CI=true pnpm gen app --args b 3991 false
+      - name: Link the PWA workspace
+        run: pnpm install --no-frozen-lockfile
+
       # `pwa` defaults to false, so the PLAIN variant is what most `pnpm gen app`
       # users actually get — and it is the one variant the PWA-only job above never
       # renders. Without this, the `{{#if pwa}}`-false branches of layout.tsx.hbs,
@@ -181,7 +192,7 @@ jobs:
       - name: Scaffold a plain app
         run: pnpm gen app --args ${{ env.PLAIN_APP }} ${{ env.PLAIN_PORT }} false
 
-      - name: Link the new workspaces
+      - name: Link the plain workspace
         run: pnpm install --no-frozen-lockfile
 
       # CONTRIBUTING.md promises a freshly generated workspace passes `pnpm

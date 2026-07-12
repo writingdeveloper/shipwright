@@ -8,37 +8,45 @@ const readJson = (name: string) =>
   JSON.parse(readFileSync(join(packageRoot, name), "utf8"));
 
 /**
- * The shadcn CLI rewrites imports to the aliases in components.json. If an alias has
- * no matching entry in package.json's `exports`, the generated component compiles in
- * isolation and then explodes at import time with ERR_PACKAGE_PATH_NOT_EXPORTED.
- * `shadcn add sidebar` hits exactly this: it pulls `use-mobile` into the hooks alias.
+ * The shadcn CLI rewrites imports to the aliases in components.json — but it never
+ * imports an alias bare. It always appends a component/file name underneath it
+ * (`@repo/ui/hooks` -> `@repo/ui/hooks/use-mobile`; `@repo/ui/components/ui` ->
+ * `@repo/ui/components/ui/button`), so an alias's `exports` entry only proves itself
+ * when something one segment deeper also resolves through it. If it doesn't, the
+ * generated component compiles fine in isolation and then explodes at *import time*
+ * with ERR_PACKAGE_PATH_NOT_EXPORTED. `shadcn add sidebar` hit exactly this: it pulls
+ * `use-mobile` into the hooks alias.
+ *
+ * This is asserted with `import.meta.resolve`, Node's own ESM resolver, instead of
+ * hand-matching against the `exports` map ourselves. `resolve()` consults the real
+ * exports map and throws ERR_PACKAGE_PATH_NOT_EXPORTED for exactly the subpaths it
+ * doesn't cover (it does not require the probed file to exist), so it is the actual
+ * contract — not an approximation of it that a differently-shaped `exports` entry
+ * (e.g. an exact key instead of a wildcard) could talk its way past.
  */
 describe("package contract", () => {
-  it("exports every subpath that components.json aliases point at", () => {
+  it("resolves every components.json alias one segment deeper, the way shadcn imports it", () => {
     const components = readJson("components.json") as {
       aliases: Record<string, string>;
     };
-    const exports = readJson("package.json") as {
-      name: string;
-      exports: Record<string, string>;
-    };
+    const { name } = readJson("package.json") as { name: string };
 
-    // "@repo/ui/components/ui" -> "./components/*"; "@repo/ui/lib/utils" -> "./lib/*".
-    const exported = Object.keys(exports.exports);
-    const resolves = (alias: string) => {
-      const subpath = alias.slice(exports.name.length); // "" | "/components/ui" | …
-      if (subpath === "") return exported.includes(".");
-      const [, head] = subpath.split("/"); // "components" | "lib" | "hooks"
-      return exported.some(
-        (key) => key === `./${head}/*` || key === `.${subpath}`,
-      );
-    };
+    const failures: string[] = [];
+    for (const [key, alias] of Object.entries(components.aliases)) {
+      if (!alias.startsWith(name)) continue;
+      const probe = `${alias}/__resolve_probe__`;
+      try {
+        import.meta.resolve(probe);
+      } catch {
+        failures.push(`${key} -> "${alias}" has no exports entry covering "${probe}"`);
+      }
+    }
 
-    const unresolvable = Object.entries(components.aliases)
-      .filter(([, alias]) => alias.startsWith(exports.name))
-      .filter(([, alias]) => !resolves(alias))
-      .map(([key, alias]) => `${key} -> ${alias}`);
-
-    expect(unresolvable).toEqual([]);
+    expect(
+      failures,
+      "shadcn rewrites imports to these aliases one segment deeper than the alias " +
+        "itself; an alias whose exports entry doesn't cover that depth compiles fine " +
+        "and then explodes at import time with ERR_PACKAGE_PATH_NOT_EXPORTED",
+    ).toEqual([]);
   });
 });

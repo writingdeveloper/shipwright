@@ -28,8 +28,10 @@ WORKDIR /app
 # the dependency graph.
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/admin/package.json ./apps/admin/
 COPY apps/web/package.json ./apps/web/
 COPY packages/analytics/package.json ./packages/analytics/
+COPY packages/api/package.json ./packages/api/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/config/package.json ./packages/config/
 COPY packages/create-shipwright/package.json ./packages/create-shipwright/
@@ -37,11 +39,14 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/email/package.json ./packages/email/
 COPY packages/env/package.json ./packages/env/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/legal/package.json ./packages/legal/
 COPY packages/observability/package.json ./packages/observability/
 COPY packages/payments/package.json ./packages/payments/
+COPY packages/pwa/package.json ./packages/pwa/
 COPY packages/security/package.json ./packages/security/
 COPY packages/seo/package.json ./packages/seo/
+COPY packages/storage/package.json ./packages/storage/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \

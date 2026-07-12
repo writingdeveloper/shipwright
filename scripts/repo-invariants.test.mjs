@@ -123,3 +123,27 @@ test("one TypeScript version governs every workspace and generator template", ()
         .join("\n"),
   );
 });
+
+/** Every workspace that pnpm must see to resolve the dependency graph. */
+function workspaceManifests() {
+  const found = [];
+  for (const root of ["apps", "packages"]) {
+    for (const name of subdirs(root)) {
+      const rel = `${root}/${name}/package.json`;
+      if (existsSync(join(repoRoot, rel))) found.push(rel);
+    }
+  }
+  return found.sort();
+}
+
+test("the Dockerfile's deps stage copies every workspace manifest", () => {
+  const dockerfile = read("Dockerfile");
+  const missing = workspaceManifests().filter(
+    (rel) => !dockerfile.includes(`COPY ${rel} `),
+  );
+  assert.deepEqual(
+    missing,
+    [],
+    `The deps stage is missing ${missing.length} workspace manifest(s). pnpm needs EVERY manifest to build the workspace graph, so \`pnpm install --frozen-lockfile\` fails outright without them — the image simply does not build.`,
+  );
+});

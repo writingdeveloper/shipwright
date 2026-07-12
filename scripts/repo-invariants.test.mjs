@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -65,14 +65,61 @@ test("every Node version in the CI matrix satisfies engines.node", () => {
   }
 });
 
-test("the app generator pins the same TypeScript as apps/web", () => {
-  const web = readJson("apps/web/package.json");
-  const template = read("turbo/generators/templates/app/package.json.hbs");
-  const pinned = template.match(/"typescript":\s*"([^"]+)"/);
-  assert.ok(pinned, "the app template must pin typescript");
+/**
+ * List the immediate subdirectories of a directory, filtering out any
+ * non-directory entries (stray files, .DS_Store, etc). Used to discover
+ * workspaces and generator templates by walking the filesystem instead of
+ * hardcoding a list — so a newly added package or template can't skip the gate.
+ */
+const subdirs = (relDir) =>
+  readdirSync(join(repoRoot, relDir), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+test("one TypeScript version governs every workspace and generator template", () => {
+  const rootPin = readJson("package.json").devDependencies.typescript;
+  const offenders = [];
+
+  const checkExactManifest = (relPath) => {
+    const pkg = readJson(relPath);
+    const pinned = pkg.dependencies?.typescript ?? pkg.devDependencies?.typescript;
+    if (pinned !== undefined && pinned !== rootPin) offenders.push({ relPath, pinned });
+  };
+
+  const checkTemplateManifest = (relPath) => {
+    const pinned = read(relPath).match(/"typescript":\s*"([^"]+)"/)?.[1];
+    if (pinned !== undefined && pinned !== rootPin) offenders.push({ relPath, pinned });
+  };
+
+  // Every workspace manifest (apps/*/package.json, packages/*/package.json).
+  for (const group of ["apps", "packages"]) {
+    for (const name of subdirs(group)) {
+      const relPath = join(group, name, "package.json");
+      if (existsSync(join(repoRoot, relPath))) checkExactManifest(relPath);
+    }
+  }
+
+  // Every generator template's package.json.hbs. These aren't valid JSON (they
+  // contain raw Handlebars block helpers like `{{#if pwa}}` outside of string
+  // values), so they're pattern-matched like the workspace check above, not parsed.
+  const templatesDir = "turbo/generators/templates";
+  for (const name of subdirs(templatesDir)) {
+    const relPath = join(templatesDir, name, "package.json.hbs");
+    if (existsSync(join(repoRoot, relPath))) checkTemplateManifest(relPath);
+  }
+
   assert.equal(
-    pinned[1],
-    web.devDependencies.typescript,
-    "a scaffolded app would type-check against a different compiler than the shared @repo/typescript-config targets.",
+    offenders.length,
+    0,
+    "One TypeScript version must govern the whole repo (root devDependencies.typescript " +
+      `= "${rootPin}"). A workspace or generator template that pins a different compiler ` +
+      "type-checks against a version the shared @repo/typescript-config was never written " +
+      "for. A range (e.g. a caret) is just as bad even when it currently resolves to the " +
+      "same version: typescript-eslint's supported range is \"<6.1.0\", so the day TS 6.1 " +
+      "ships, a floated package silently jumps onto an unsupported compiler and its lint " +
+      "behavior diverges from the rest of the repo. Pin the exact string instead.\n" +
+      offenders
+        .map(({ relPath, pinned }) => `  - ${relPath}: pins "${pinned}", expected "${rootPin}"`)
+        .join("\n"),
   );
 });

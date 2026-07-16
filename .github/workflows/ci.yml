@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # The static invariant test (scripts/repo-invariants.test.mjs) catches a
       # missing workspace manifest in milliseconds; this job is the proof that the

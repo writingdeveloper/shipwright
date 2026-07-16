@@ -98,7 +98,7 @@ jobs:
       # HOSTNAME, CMD), all of which can be silently wrong while `docker build`
       # stays green.
       - name: Build the production image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false

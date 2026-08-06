@@ -17,18 +17,18 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
+    "@types/react": "19.2.18",
     "eslint": "^9.39.1",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@repo/env": "workspace:*",
     "@react-email/components": "^1.0.12",
-    "react": "^19.2.0",
-    "resend": "^6.14.0"
+    "react": "^19.2.8",
+    "resend": "^6.18.1"
   },
   "peerDependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.8"
   }
 }

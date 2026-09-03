@@ -18,13 +18,13 @@
     "@types/node": "^22.15.3",
     "eslint": "^9.39.1",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
     "@repo/email": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/observability": "workspace:*",
-    "stripe": "^22.2.1"
+    "stripe": "^22.6.0"
   }
 }

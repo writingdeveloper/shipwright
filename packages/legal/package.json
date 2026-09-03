@@ -20,17 +20,17 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
+    "@types/react": "19.2.18",
     "eslint": "^9.39.1",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
-    "next": "16.2.9",
-    "react": "^19.2.0"
+    "next": "16.3.3",
+    "react": "^19.2.8"
   },
   "peerDependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.8"
   }
 }

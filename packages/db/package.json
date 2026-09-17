@@ -22,16 +22,16 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/pg": "^8.20.0",
+    "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.1",
     "typescript": "6.0.3",
     "vitest": "^4.1.9"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.4",
+    "@libsql/client": "^0.18.0",
     "@repo/env": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "pg": "^8.22.0"
+    "pg": "^8.23.0"
   }
 }

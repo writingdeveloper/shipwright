@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@repo/env": "workspace:*",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.0"
+    "@upstash/ratelimit": "^2.1.0",
+    "@upstash/redis": "^1.38.4"
   }
 }
